@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block title %}FACES JOURNAL D'ARCHITECTURE{% endblock %}
+
+{% block content %}
+
+<div style="width: 34vw; margin-left: 33vw; text-align: center; padding: 5vmax 0;">
+
+    <div style="display: inline-block; width: 34vw; text-align: left;">
+        <a href="/">
+            <img style="width: 34vw;" src="{% static 'img/logo.svg' %}" alt="Faces Magazine" title="Retourner à l'accueil">
+        </a>
+        <p>Journal d'Architecture</p>
+    </div>
+
+    <h1 style="color: #FFF; background: #000; padding: 15px;">Erreur !</h1>
+    <p>La page que vous recherchez n'existe pas.</p>
+    <p>Revenir à l'<a href="/">accueil</a></p>
+</div>
+
+{% endblock %}
+
+{% block extra-js %}
+
+<script>
+document.getElementById("icons").style.display = "none";
+</script>
+
+{% endblock %}

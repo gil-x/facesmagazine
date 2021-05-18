@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block title %}FACES | Abonnés{% endblock %}
+
+
+{% block content %}
+
+
+
+<section id="staff-zone" class="section-a">
+
+<h1>administration</h1>
+
+{% include 'magazine/logo-black.html' %}
+
+<h2>Liste d'envoi du numéro {{number}}</h2>
+
+    <table>
+        <tr>
+            <td>NOM / RAISON SOCIALE</td>
+            <td>ABONNÉ</td>
+            <td>ADRESSE</td>
+            <td>REGION</td>
+        </tr>
+        {% for customer in customers %}
+
+            {% if customer.region == 'FRANCE' %}
+            <tr>
+                <td>{{customer.name}}</td>
+                <td>{{customer.subscriber}}</td>
+                <td>{{customer.address}}<br>
+                    {{customer.postal_code}} {{customer.city}}</td>
+                <td>{{customer.region}}</td>
+                <td>{{customer.issues_to_go}}</td>
+                
+            </tr>
+            {% endif%}
+
+            {% if customer.region == 'SUISSE' %}
+            <tr>
+                <td>{{customer.name}}</td>
+                <td>{{customer.subscriber}}</td>
+                <td>{{customer.address}}<br>
+                    {{customer.postal_code}} {{customer.city}}</td>
+                <td>{{customer.region}}</td>
+                <td>{{customer.issues_to_go}}</td>
+            </tr>
+            {% endif%}
+
+            {% if customer.region == 'AUTRE' %}
+            <tr>
+                <td>{{customer.name}}</td>
+                <td>{{customer.subscriber}}</td>
+                <td>{{customer.address}}<br>
+                    {{customer.postal_code}} {{customer.city}}</td>
+                <td>{{customer.region}}</td>
+                <td>{{customer.issues_to_go}}</td>
+            </tr>
+            {% endif%}
+
+        {% endfor %}
+    </table>
+
+    <p>
+        Liste d'envoi FRANCE : <a href="{% url 'subscribers_issue_export' number=number region="france" %}">Télécharger au format CSV</a><br>
+        Liste d'envoi SUISSE : <a href="{% url 'subscribers_issue_export' number=number region="suisse" %}">Télécharger au format CSV</a><br>
+        Liste d'envoi AUTRE : <a href="{% url 'subscribers_issue_export' number=number region="autre" %}">Télécharger au format CSV</a>
+    </p>
+
+</section>
+
+{% endblock %}

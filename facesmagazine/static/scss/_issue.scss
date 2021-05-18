@@ -1,0 +1,130 @@
+.module{}
+
+#issue-detail {
+    border: 1.2vmax solid #FFF;
+
+    @include title-zone;
+
+    .issue {
+        display: flex;
+        flex-wrap: wrap;
+
+        @media screen and (max-width: 600px) {
+            display: block;
+        }
+
+        .subscribe {
+            position: absolute;
+            right: 0;
+            display: flex;
+            padding: 6.2vmax;
+            align-items: center;
+            background: $dark-gold;
+            border-radius: 100vmax;
+            transform: translateX(6.2vmax);
+            transition: all 0.5s;
+
+            span {
+                position: absolute;
+                transform: translateX(-5.2vmax);
+            }
+
+            @media screen and (max-width: 600px) {
+                border-radius: 0;
+                position: fixed;
+                top: 20vmax;
+                right: 0;
+                height: 60vmax;
+                writing-mode: vertical-lr;
+                text-orientation: sideways;
+                transform: rotateZ(180deg);
+                padding: 7px;
+                
+                text-transform: uppercase;
+                letter-spacing: 0.35em;
+                color: #FFF;
+
+                a {
+                    position: static;
+                    transform: none;
+                    display: block;
+                    height: 100%;
+                    text-align: center;
+                    text-decoration: none;
+                }
+            }
+        }
+        .subscribe:hover {
+            background: $gold;
+            
+            @media screen and (min-width: 600px) {
+                transform: translateX(5.2vmax);
+            }
+        }
+
+        .issue-image {
+            flex-basis: 50%;
+            height: 60vh;
+            border: 1px solid #000;
+
+            @media screen and (max-width: 600px) {
+                height: 35vh;
+                background-size: cover;
+            }
+        }
+
+        .emergency {
+            border: none;
+        }
+
+        .issue-text {
+            flex-basis: 50%;
+            padding-left: 25px;
+
+            @media screen and (max-width: 600px) {
+                padding-left: 0;
+                margin-top: 15px;
+            }
+
+            p {
+                padding-right: 10px;
+            }
+
+            .issue-titles {
+                display: flex;
+                margin-bottom: 15px;
+                border-bottom: 2px solid #000;
+
+                h2 {
+                    flex-basis: 50%;
+                    margin: 0;
+                    padding: 10px;
+                    color: $lightgray;
+                    background: #FFF;
+                    text-align: center;
+                    transition: background 0.25s;
+                    cursor: pointer;
+                }
+
+                .active {
+                    color: #FFF;
+                    background: #000;
+                }
+
+            }
+
+            .issue-content {
+                padding-top: 15px;
+                text-align: justify;
+                height: 55vh;
+                overflow-y: scroll;
+                scrollbar-color: #000 $lightgray;
+                scrollbar-width: thin;
+            }
+
+            .hidden {
+                display: none;
+            }
+        }
+    }
+}

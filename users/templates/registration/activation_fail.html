@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Lien d'activation invalide{% endblock %}
+
+{% block content %}
+
+<section id="account-form" class="section-a">
+
+  <div class="account">
+    
+    {% include 'magazine/logo-white.html' %}
+
+    <h1>Petit problème...</h1>
+    <p class="important">Désolé, il semble que ce lien d'activation ne soit plus valable.<br>
+    Vous pouvez reprendre la procédure en suivant <a href="{% url 'registration' %}" >ce lien</a>.</p>
+    <p>Désolé pour le contre-temps !</p>
+    
+  </div>
+    
+</section>
+
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block title %}FACES | Votre profil{% endblock %}
+
+
+{% block content %}
+
+<section id="account-form" class="section-a">
+
+    <div class="account">
+
+        {% include 'magazine/logo-white.html' %}
+
+        <h1>Votre profil</h1>
+        <hr>
+
+        <h2>Statut abonnement :</h2>
+
+        {% if customer_profile.subscriber  %}
+        <p class="important">Vous êtes actuellement abonné à FACES Magazine pour les numéros {{ customer_profile.first_issue }}, {{ customer_profile.first_issue|add:"1" }}, {{ customer_profile.first_issue|add:"2" }}, {{ customer_profile.first_issue|add:"3" }}.</p>
+        {% else %}
+        <p>Vous êtes n'êtes pas encore abonné à FACES Magazine.<br>
+        <a href={% url 'shop' %}>Suivez ce lien pour vous abonner.</a></p>
+        {% endif %}
+
+        <hr>
+
+
+        {% if profile_is_complete %}
+
+        {% comment %} <h2>Vos informations :</h2> {% endcomment %}
+
+        <h2>Coordonnées de facturation :</h2>
+        
+        <p>
+            <strong>Nom :</strong> {{ customer_profile.name|default_if_none:"-" }}<br>
+            <strong>Prénom :</strong> {{ customer_profile.firstname|default_if_none:"-" }}<br>
+            <strong>Raison sociale :</strong> {{ customer_profile.company|default_if_none:"-" }}
+        </p>
+        
+        <p>
+            {{ customer_profile.address }}<br>
+            {{ customer_profile.postal_code }} {{ customer_profile.city }} ({{ customer_profile.land}})<br>
+            {% if customer_profile.address_extra %}
+            {{ customer_profile.address_extra }}<br>
+            {% endif %}
+            {% if customer_profile.postal_square %}
+            Case postale : {{ customer_profile.postal_square }} <br>
+            {% endif %}
+        </p>
+
+        <hr>
+
+        <h2>Coordonnées de livraison :</h2>
+
+        <p>
+            <strong>Nom :</strong> {{ customer_profile.delivery_name|default_if_none:"-" }}<br>
+            <strong>Prénom :</strong> {{ customer_profile.delivery_firstname|default_if_none:"-" }}<br>
+            <strong>Raison sociale :</strong> {{ customer_profile.delivery_company|default_if_none:"-" }}
+        </p>
+
+        <p>
+            {{ customer_profile.delivery_address }}<br>
+            {{ customer_profile.delivery_postal_code }} {{ customer_profile.delivery_city }} ({{ customer_profile.delivery_land }})<br>
+            {% if customer_profile.delivery_address_extra %}
+            {{ customer_profile.delivery_address_extra }}<br>
+            {% endif %}
+            {% if customer_profile.postal_square %}
+            Case postale : {{ customer_profile.delivery_postal_square }} <br>
+            {% endif %}
+        </p>
+
+        <hr>
+
+        <p><strong>Ces informations sont-elles correctes ?</strong><br>
+        Sinon veuillez mettre à jour votre profil en suivant <a href="{% url 'edit_profile' %}">ce lien</a></p>
+
+        {% else %}
+
+        <p class="important">Avant de passer commande vous devez renseigner une adresse complète dans votre profil.</p>
+        <p><a href="{% url 'edit_profile' %}">> Compléter mon profil</a></p>
+
+        {% endif %}
+
+    </div>
+    
+</section>
+
+{% endblock %}

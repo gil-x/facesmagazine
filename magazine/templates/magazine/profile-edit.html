@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block title %}FACES | Votre profil{% endblock %}
+
+
+{% block content %}
+
+<section id="account-form" class="section-a">
+
+    <div class="account">
+
+        {% include 'magazine/logo-white.html' %}
+
+        <h1>Votre profil</h1>
+
+        <form action="{% url 'edit_profile' %}" method="post">
+            {% csrf_token %}
+
+            
+            <div class="address">
+                <h2>Coordonnées de facturation</h2>
+                <p>
+                    <label for={{ form.name.id_for_label }}>Nom :</label>
+                    {{ form.name }}
+                </p>
+                <p>
+                    <label for={{ form.firstname.id_for_label }}>Prénom :</label>
+                    {{ form.firstname }}
+                </p>
+                <p>
+                    <label for={{ form.company.id_for_label }}>Société / Raison sociale :</label>
+                    {{ form.company }}
+                </p>
+                {% if form.errors %}
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                        <p class="warning">{{ error|escape }}</p>
+                        {% endfor %}
+                    {% endfor %}
+
+                    {% for error in form.non_field_errors %}
+                        <p class="warning">{{ error|escape }}</p>
+                    {% endfor %}
+                {% endif %}
+                <hr>
+                <p>
+                    <label for={{ form.region.id_for_label }}>{{ form.delivery_region.label_tag }}</label>
+                    {{ form.region }}
+                </p>
+                <p>
+                    <label for={{ form.address.id_for_label }}>{{ form.address.label_tag }}</label>
+                    {{ form.address }}
+                </p>
+                <p>
+                    <label for={{ form.address_extra.id_for_label }}>{{ form.address_extra.label_tag }}</label>
+                    {{ form.address_extra }}
+                </p>
+                <p>
+                    <label for={{ form.postal_code.id_for_label }}>{{ form.postal_code.label_tag }}</label>
+                    {{ form.postal_code }}
+                </p>
+                <p>
+                    <label for={{ form.postal_square.id_for_label }}>{{ form.postal_square.label_tag }}</label>
+                    {{ form.postal_square }}
+                </p>
+                <p>
+                    <label for={{ form.city.id_for_label }}>{{ form.city.label_tag }}</label>
+                    {{ form.city }}
+                </p>
+                <p>
+                    <label for={{ form.land.id_for_label }}>{{ form.land.label_tag }}</label>
+                    {{ form.land }}
+                </p>
+                <p>
+                    <label for={{ form.phone.id_for_label }}>{{ form.phone.label_tag }}</label>
+                    {{ form.phone }}
+                </p>
+            </div>
+
+            <div class="delivery-address">
+
+                <div class="title">
+                    <h2>Coordonnées de livraison</h2>
+                    <div id="address-checker">
+                        <label for="same-address">Mêmes coordonnées</label>
+                        <input type="checkbox" id="same-address" name="same-address">
+                    </div>
+                </div>
+                <p>
+                    <label for={{ form.delivery_name.id_for_label }}>Nom :</label>
+                    {{ form.delivery_name }}
+                </p>
+                <p>
+                    <label for={{ form.delivery_firstname.id_for_label }}>Prénom :</label>
+                    {{ form.delivery_firstname }}
+                </p>
+                <p>
+                    <label for={{ form.delivery_company.id_for_label }}>Société / Raison sociale :</label>
+                    {{ form.delivery_company }}
+                </p>
+                {% if form.errors %}
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                        <p class="warning">{{ error|escape }}</p>
+                        {% endfor %}
+                    {% endfor %}
+
+                    {% for error in form.non_field_errors %}
+                        <p class="warning">{{ error|escape }}</p>
+                    {% endfor %}
+                {% endif %}
+                <hr>
+
+                <p>
+                    <label for={{ form.delivery_region.id_for_label }}>{{ form.delivery_region.label_tag }}</label>
+                    {{ form.delivery_region }}
+                </p>
+                <p>
+                    <label for={{ form.delivery_address.id_for_label }}>{{ form.delivery_address.label_tag }}</label>
+                    {{ form.delivery_address }}
+                </p>
+                <p>
+                    <label for={{ form.delivery_address_extra.id_for_label }}>{{ form.delivery_address_extra.label_tag }}</label>
+                    {{ form.delivery_address_extra }}
+                </p>
+                <p>
+                    <label for={{ form.delivery_postal_code.id_for_label }}>{{ form.delivery_postal_code.label_tag }}</label>
+                    {{ form.delivery_postal_code }}
+                </p>
+                <p>
+                    <label for={{ form.delivery_postal_square.id_for_label }}>{{ form.delivery_postal_square.label_tag }}</label>
+                    {{ form.delivery_postal_square }}
+                </p>
+                <p>
+                    <label for={{ form.delivery_city.id_for_label }}>{{ form.delivery_city.label_tag }}</label>
+                    {{ form.delivery_city }}
+                </p>
+                <p>
+                    <label for={{ form.delivery_land.id_for_label }}>{{ form.delivery_land.label_tag }}</label>
+                    {{ form.delivery_land }}
+                </p>
+                <p>
+                    <label for={{ form.delivery_phone.id_for_label }}>{{ form.delivery_phone.label_tag }}</label>
+                    {{ form.delivery_phone }}
+                </p>
+            </div>
+            <div class="approval">
+                {{ form.approval }}
+                <label for={{ form.approval.id_for_label }}>M'avertir par email au terme de mon abonnement</label>
+            </div>
+
+            <input type="submit" value="Valider" />
+        </form>
+
+    </div>
+    
+</section>
+
+{% endblock %}

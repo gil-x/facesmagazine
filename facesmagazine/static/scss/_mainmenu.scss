@@ -1,0 +1,65 @@
+#icons {
+    position: fixed;
+    top: 5vh;
+    right: 20px;
+    cursor: pointer;
+    z-index: 100;
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+
+    a {
+        flex-basis: 15vh;
+    }
+}
+
+#main-menu {
+    margin-bottom: 15vh;
+
+    ul {
+        display: flex;
+        list-style-type: none;
+
+        @media screen and (max-width: 600px) {
+            display: block;
+            width: 80vw;
+            
+        }
+
+        li {
+            display: flex;
+            align-items: center;
+        }
+
+        li:not(:last-child) {
+            margin-right: 15px;
+            padding-right: 15px;
+            border-right: 1px solid white;
+
+            @media screen and (max-width: 600px) {
+                border-right: none;
+            }
+        }
+
+        @media screen and (max-width: 600px) {
+            li {
+                margin: 7px;
+                border-right: none;
+            }
+        }
+
+        a {
+            color: #FFF;
+            transition: all 0.5s;
+            text-decoration: none;
+        }
+
+        a:hover {
+            color: #CCC;
+        }
+
+        .active {
+            border-bottom: 1px solid #FFF;
+        }
+    }
+}

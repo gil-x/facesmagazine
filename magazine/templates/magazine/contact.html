@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load honeypot %}
+
+{% block title %}FACES | Nous contacter{% endblock %}
+
+
+{% block content %}
+
+<section id="contact-form" class="section-a">
+
+    {% include 'magazine/logo-white.html' %}
+
+    <h1>Nous contacter</h1>
+
+    {% if error %}
+    <p class="warning">Votre&nbsp;message&nbsp;n'a&nbsp;pas&nbsp;été&nbsp;envoyé, merci&nbsp;de&nbsp;vérifier&nbsp;le&nbsp;Captcha.</p>
+    {% endif %}
+
+    <form action="{% url "contact_captcha" %}" method="post">
+        {% csrf_token %}
+        {% render_honeypot_field "name" %}
+        {{ form.as_p }}
+        <input type="submit" value="Envoyer" />
+    </form>
+    
+</section>
+
+{% endblock %}

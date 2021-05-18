@@ -1,0 +1,11 @@
+*.pyc
+.vscode
+/venv
+__pycache__
+
+/_w
+/media/issues/*
+/facesmagazine/settings_specific.py
+/facesmagazine/settings_specific_pp.py
+/facesmagazine/settings_specific_prod.py
+db.sqlite3

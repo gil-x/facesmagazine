@@ -1,0 +1,100 @@
+.module{}
+
+#archives {
+    width: $main-with;
+    border: 1.2vmax solid #FFF;
+
+    @media screen and (max-width: 600px) {
+        width: auto;
+    }
+
+    @include title-zone;
+
+    .issues {
+        display: flex;
+        flex-wrap: wrap;
+
+        a {
+            text-decoration: none;
+        }
+        
+        .issue {
+            margin: $issue-margin;
+
+            .thumbnail {
+                width: $thumbnail-width;
+                height: $thumbnail-height;
+
+                .text {
+                    opacity: 0;
+                    transition: opacity 1s;
+                    background: $gray;
+                    width: $thumbnail-width;
+                    height: $thumbnail-height;
+
+                    p {
+                        margin: 10px;
+                        padding: 10px;
+                        font-weight: none;
+                        // text-align: left;
+                    }
+                }
+
+                .text:hover {
+                    opacity: 1;
+                }
+            }
+        }
+
+        .subscribe {
+            position: absolute;
+            right: 0;
+            display: flex;
+            padding: 6.2vmax;
+            align-items: center;
+            background: $dark-gold;
+            border-radius: 100vmax;
+            transform: translateX(6.2vmax);
+            transition: all 0.5s;
+    
+            span {
+                position: absolute;
+                transform: translateX(-5.2vmax);
+            }
+    
+            @media screen and (max-width: 600px) {
+                border-radius: 0;
+                position: fixed;
+                top: 20vmax;
+                right: 0;
+                height: 60vmax;
+                writing-mode: vertical-lr;
+                text-orientation: sideways;
+                transform: rotateZ(180deg);
+                padding: 7px;
+                
+                text-transform: uppercase;
+                letter-spacing: 0.35em;
+                color: #FFF;
+    
+                span {
+                    position: static;
+                    transform: none;
+                    display: block;
+                    height: 100%;
+                    text-align: center;
+                    text-decoration: none;
+                }
+            }
+        }
+        .subscribe:hover {
+            background: $gold;
+            
+            @media screen and (min-width: 600px) {
+                transform: translateX(5.2vmax);
+            }
+        }
+    }
+
+
+}

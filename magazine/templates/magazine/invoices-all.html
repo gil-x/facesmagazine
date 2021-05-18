@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block title %}FACES - Factures{% endblock %}
+
+{% block content %}
+<section id="staff-zone" class="section-a">
+
+<h1>administration</h1>
+
+{% include 'magazine/logo-black.html' %}
+
+{% for invoice in invoices %}
+
+<p>
+{{ invoice.customer }}
+{{ invoice.item }}
+{{ invoice.subscription }}
+{{ invoice.date|date:"D d M Y" }}
+{{ invoice.amount }}
+{{ invoice.currency }}</p>
+
+{% endfor %}
+
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block title %}FACES | ARCHIVES{% endblock %}
+
+{% block content %}
+<section id="archives" class="section-a">
+
+    {% include 'magazine/logo-black.html' %}
+    
+    <div class="issues">
+        {% if user.is_authenticated %}
+            {% if user.is_staff %}
+                <a href="{% url 'subscribers' %}">
+                    <div class="subscribe" style="background: #000;">
+                        <span style="color: #FFF;">liste des abonnés</span>
+                    </div>
+                </a>
+            {% elif shop and customer.subscriber %}
+
+                <a href={% url 'profile' %}>
+                    <div class="subscribe" style="background: #{{ last_issue.color }};">
+                        <span>Mon abonnement</span>
+                    </div>
+                </a>
+            {% elif shop and not customer.subscriber %}
+                <a href={% url 'shop' %}>
+                    <div class="subscribe" style="background: #{{ last_issue.color }};">
+                        <span>S'abonner à&nbsp;Faces</span>
+                    </div>
+                </a>
+            {% endif %}
+        {% else %}
+            <a href={% url 'registration' %}>
+                <div class="subscribe" style="background: #{{ last_issue.color }};">
+                    <span>S'abonner à&nbsp;Faces</span>
+                </div>
+            </a>
+        {% endif %}
+
+        <div class="bar">
+            <div class="black"><h1>Numéros</h1></div>
+            <div class="white"><a href="https://www.infolio.ch/collection/faces.htm?affichage=details&ordre=date_desc" target="_blank">Acheter <em>Faces</em> à l'unité ?</a></div>
+        </div>
+        {% for issue in issues_availables %}
+        <a href={% url 'issue' number=issue.number %}>
+            <div class="issue">
+                <div class="thumbnail" style="background-image: url({{ issue.thumbnail.url }}); background-size: cover;">
+                    <div class="text" unselectable="on">
+                        <p><strong>N° {{ issue.number }}<br>
+                        {{ issue.theme }}</strong><br><br>
+                        {{ issue.date }}</p>
+                    </div>
+                </div>
+            </div>
+       </a>
+       {% endfor %}
+    </div>
+    <div class="issues">
+        {% for issue in issues_empty %}
+        <a href={% url 'issue' number=issue.number %}>
+            <div class="issue">
+                <div class="thumbnail" style="background-image: url({{ issue.thumbnail.url }}); background-size: cover;">
+                    <div class="text" unselectable="on">
+                        <p><strong>N° {{ issue.number }}<br>
+                        {{ issue.theme }}</strong><br><br>
+                        {{ issue.date }}</p>
+                    </div>
+                </div>
+        </div>
+       </a>
+       {% endfor %}
+    </div>
+</section>
+{% endblock %}

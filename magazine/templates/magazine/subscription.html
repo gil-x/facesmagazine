@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block title %}FACES | Paiement{% endblock %}
+
+{% block content %}
+<section id="shop" class="section-a">
+    
+    {% include 'magazine/logo-white.html' %}
+
+    <div>
+        <h1>Votre abonnement</h1>
+
+        <p class="important">{{ subscription }}</p>
+
+        <p>Vous êtes abonné pour 2 ans et recevrez les numéros {{ customer_profile.first_issue }}, {{ customer_profile.first_issue|add:"1" }}, {{ customer_profile.first_issue|add:"2" }}, {{ customer_profile.first_issue|add:"3" }}.</p>
+    </div>
+
+</section>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Votre inscription est validée.{% endblock %}
+
+{% block content %}
+
+<section id="account-form" class="section-a">
+
+    <div class="account">
+    
+        {% include 'magazine/logo-white.html' %}
+
+            <h1>Votre compte est à présent activé</h1>
+            <p class="important">Afin de passer commande il vous sera indispensable de renseigner une adresse complète, nous vous proposons de le faire immédiatement en <a href="{% url 'edit_profile' %}">suivant ce lien</a>.</p>
+    </div>
+    
+</section>
+
+{% endblock %}

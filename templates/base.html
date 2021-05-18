@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+{% load staticfiles %}
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="description" content="Fondé en 1985, FACES est un journal d'architecture théorique et critique sur les productions architecturales et artistiques contemporaines."/>
+    <meta name="keywords" content="architecture,contemporaine,suisse,Faces,paysage,journal,théorie de l'architecture, critique, critique de l'architecture, fédération,architecte,architecte, paolo, Amaldi,adrien,Besson, philippe, Meyer, Denis,Pernet,facesmagazine,romande, Culture,bâti,faces,magazine,journal,Infolio,ville,paysage,urbanisme,revue,patrimoine,"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}FACES JOURNAL D'ARCHITECTURE{% endblock %}</title>
+    {% block extra-js-head %}
+    {% endblock %}
+    <link rel="icon" href="{% static 'img/favicon.png' %}" type="image/png" sizes="32x32" >
+    <link rel="stylesheet" href="{% static 'css/main.min.css' %}">
+    {% if homepage %}
+    <style>
+    @keyframes bg-color {
+        0%   { background: #000; }
+        40%  { background: #{{ last_issue.color }}; }
+        90%  { background: #000; }
+        100% { background: #000; }
+    }
+    html {
+        background: #000;
+        animation-name: bg-color;
+        animation-duration: 20s;
+        animation-iteration-count: infinite;
+        animation-direction: alternate;
+        animation-delay: 1s;
+    }
+    #account li a {
+        color: #FFF;
+    }
+    </style>
+    {% endif %}
+  </head>
+
+  <body id="page">
+
+<div id="icons">
+    <a href="#" class="icon">
+        {% if homepage %}
+        <img class="menu-call" src="{% static 'img/menu-icon-white.svg' %}" alt="Menu principal" title="Menu principal">
+        {% else %}
+        <img class="menu-call" src="{% static 'img/menu-icon.svg' %}" alt="Menu principal" title="Menu principal">
+        {% endif %}
+    </a>
+</div>
+
+{% block auth %}
+{% if users %}
+<div id="account">
+    <ul>
+
+        {% if user.is_authenticated %}
+
+        <li><a href="{% url 'profile' %}" class="icon">{{user.username}}</a></li>
+        <li><a href="{% url 'logout' %}?next=/">déconnexion</a></li>
+
+            {% if user.is_staff %}
+                <li><a href="{% url 'subscribers' %}">liste des abonnés</a></li>
+            {% endif %}
+
+        {% else %}
+
+        <li><a href="{% url 'login' %}">connexion</a></li>
+        <li><a href="{% url 'registration' %}">créer un compte</a></li>
+
+        {% endif %}
+        
+    </ul>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+{% endblock %}
+
+<section id="pages" class="section-b section-b-off">
+    <img id="close-icon" src="{% static 'img/close-icon.svg' %}" alt="" title="Fermer">
+
+    {% block menu %}
+    <nav id="main-menu">
+        <ul>
+        {% for page in pages %}
+            <li>
+                <a id="menu-{{ page.position }}" class="menu-item" href="#">{{page.label}}</a>
+            </li>
+        {% endfor %}
+            <li>
+                <a href="{% url 'archives' %}" class="menu-item">numéros</a>
+            </li>
+            <li>
+                <a href="https://www.facebook.com/Faces-journal-darchitecture-107892369279167/" target="_blank">
+                    <img id="facebook" src="{% static 'img/facebook.svg' %}" alt="" title="Facebook">
+                </a>
+            </li>
+        </ul>
+    </nav>
+    {% endblock %}
+
+    {% for page in pages %}
+        {% if not page.body_extra %}
+        <div id="menu-{{ page.position }}-text" class="page single hidden">
+            <div>{{page.body|safe}}</div>
+        </div>
+        {% else %}
+        <div id="menu-{{ page.position }}-text" class="page double hidden">
+            <div>{{page.body|safe}}</div>
+            <div>{{page.body_extra|safe}}
+                <div class="footer">{{page.footer|safe}}</div>
+            </div>
+        </div>
+        
+        {% endif %}
+
+        {% if page.position == 2 %}
+            
+            {% endif %}
+            
+    {% endfor %}
+    
+</section>
+
+<script src="{% static 'js/main.js' %}"></script>
+{% block extra-js %}
+{% endblock %}
+
+    </body>
+</html>

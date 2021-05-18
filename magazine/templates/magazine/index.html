@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block title %}FACES JOURNAL D'ARCHITECTURE{% endblock %}
+
+{% block content %}
+
+<section id="home" class="section-a">
+
+    <div class="issue">
+        <div class="logo-zone">
+            <a href="/">
+                <img id="logo" src="{% static 'img/logo_white.svg' %}" alt="Faces Magazine" title="Retourner à l'accueil">
+            </a>
+        </div>
+        <a id="link" href="{% url 'issue' number=last_issue.number %}" shop={{ shop }} user={{ request.user.id }}>
+            <div class="subtitle-zone">
+                <div><em>Journal d'architecture | {{ last_issue.theme }}</em><br>
+                <em class="date">{{ last_issue.date }}</em></div>
+                <div class="number"><strong>{{ last_issue.number }}</strong></div>
+            </div>
+            <div class="image-zone">
+                <div class="slider slider-2">
+                    <span>N°{{ last_issue.number }}</span>
+                </div>
+                <div class="slider slider-3">
+                    <span class="subscribe">Subscribe</span>
+                </div>
+                {% if last_issue.image %}
+                <div class="slider slider-1" style="background-image: url({{ last_issue.image.url }}); background-size: cover;"></div>
+                {% else %}
+                <div class="slider slider-1"></div>
+                {% endif %}
+            </div>
+        </a>
+    </div>
+    
+</section>
+
+{% endblock %}

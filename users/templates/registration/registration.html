@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block title %}FACES | Créer un compte{% endblock %}
+
+{% block content %}
+
+<section id="account-form" class="section-a">
+
+    <div class="account">
+    
+        {% include 'magazine/logo-white.html' %}
+
+        {% if user.is_authenticated %}
+            <h1>Bonjour {{ user.username }} !</h1>
+        {% else %}
+            <h1 class="text-uppercase"><strong>Créer un compte</strong></h1>
+            <hr>
+
+            {% if "shop" in next or 1 %}
+            <p class="important">Vous devez créer un compte sur le site pour vous abonner au magazine</p>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+
+                {% for field in form %}
+                    <p>
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {% if field.help_text %}
+                        <small style="display: none">{{ field.help_text }}</small>
+                        {% endif %}
+                        {% for error in field.errors %}
+                        <p style="color: red">{{ error }}</p>
+                        {% endfor %}
+                    </p>
+                {% endfor %}
+
+                <input type="submit" value="Créer le compte" />
+            </form>
+        {% endif %}
+
+        <div class="useful">
+            J'ai déjà un compte : <a href="{% url 'login' %}">aller à l'écran de connexion</a> 
+        </div>
+
+    </div>
+    
+</section>
+
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% comment %} 
+
+
+
+{% extends "base.html" %}
+
+{% block title %}Créer un compte{% endblock %}
+
+{% block content %}
+
+
+{% if error %}
+<p><strong>Erreur quelque part...</strong></p>
+{% endif %}
+
+
+<header id="account-header" class="masthead text-center text-white d-flex">
+    <div class="container my-auto">
+        <div id="home-search-block" class="row">
+            <div id="login-box" class="col-lg-10 mx-auto">
+            {% if user.is_authenticated %}
+                <h1>Bonjour {{ user.username }} !</h1>
+            {% else %}
+                <h1 class="text-uppercase"><strong>Créer un compte</strong></h1>
+                <hr>
+                <form method="post">
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <p>
+                            {{ field.label_tag }}
+                            {{ field }}
+                            {% if field.help_text %}
+                            <small style="display: none">{{ field.help_text }}</small>
+                            {% endif %}
+                            {% for error in field.errors %}
+                            <p style="color: red">{{ error }}</p>
+                            {% endfor %}
+                        </p>
+                    {% endfor %}
+                    <input type="submit" value="Créer le compte" />
+                </form>
+
+            {% endif %}
+            </div>
+        </div>
+    </div>
+</header>
+
+{% endblock %} {% endcomment %}

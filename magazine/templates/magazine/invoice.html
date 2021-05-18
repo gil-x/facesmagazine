@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load magazine_extras %}
+
+{% block title %}FACES - Factures{% endblock %}
+
+{% block content %}
+<section id="invoice">
+
+
+<div class="customer">
+    <p>
+        {% if invoice.customer.company %}
+        <strong>{{ invoice.customer.company }}</strong><br>
+        {% endif %}
+        {% if invoice.customer.name %}
+        <strong>{{ invoice.customer.name }}</strong> 
+        {% endif %}
+        <strong>{{ invoice.customer.firstname }}</strong>
+    </p>
+    <p>
+        {{ invoice.customer.address }}<br>
+        {{ invoice.customer.postal_code }} {{ invoice.customer.city }}<br>
+    </p>
+</div>
+
+<div class="faces">
+    <p>
+        <strong>Association FACES</strong>
+    </p>
+    <p>
+    Rue de Veyrier 19<br>
+    1227 Carouge GE, Suisse
+    </p>
+</div>
+
+
+<h1 class="w25 lined-down">Facture</h1>
+
+<div class="customer">
+    <p>
+        {% if invoice.customer.company %}
+        <strong>{{ invoice.customer.company }}</strong><br>
+        {% endif %}
+        {% if invoice.customer.name %}
+        <strong>{{ invoice.customer.name }}</strong> 
+        {% endif %}
+        <strong>{{ invoice.customer.firstname }}</strong>
+    </p>
+    <p>
+        {{ invoice.customer.address }}<br>
+        {{ invoice.customer.postal_code }} {{ invoice.customer.city }}<br>
+    </p>
+</div>
+
+<div class="date">
+    <p>
+        <strong>Date : </strong> {{ invoice.date|date:"d M Y" }}
+    </p>
+    <p>Méthode de paiement : carte de crédit</p>
+</div>
+
+
+<div class="detail">
+
+    <div class="line lined-up lined-down">
+        <div class="w50">
+            <strong>Produit</strong>
+        </div>
+        <div class="w25">
+            <strong>Quantité</strong>
+        </div>
+        <div class="w25">
+            <strong>Prix</strong>
+        </div>
+    </div>
+
+    <div class="line">
+        <div class="w50">
+            {{ invoice.subscription.name }} ({{ invoice.order_info }})
+        </div>
+        <div class="w25">
+            &nbsp;1
+        </div>
+        <div class="w25">
+            {{ invoice.amount }} {{ invoice.currency }}
+        </div>
+    </div>
+
+    <div class="line">
+        <div class="w50">
+            
+        </div>
+        <div class="w25 lined-up">
+            <strong>Sous-total</strong>
+        </div>
+        <div class="w25 lined-up">
+            {{ invoice.amount }} {{ invoice.currency }}
+        </div>
+    </div>
+
+    <div class="line">
+        <div class="w50">
+            
+        </div>
+        <div class="w25 lined-up">
+            <strong>TVA (0%)</strong>
+        </div>
+        <div class="w25 lined-up">
+            0 {{ invoice.currency }}
+        </div>
+    </div>
+
+    <div class="line">
+        <div class="w50">
+            
+        </div>
+        <div class="w25 lined-up">
+            <strong>TOTAL</strong>
+        </div>
+        <div class="w25 lined-up">
+            <strong>{{ invoice.amount }} {{ invoice.currency }}</strong>
+        </div>
+    </div>
+</div>
+
+
+
+
+<div class="logo lined-up">
+    <img src="{% static 'img/logo.svg' %}" alt="Faces Magazine">
+    <p>Journal d'architecture</p>
+</div>
+
+</section>
+
+<button onclick="window.print();return false;">Imprimer</button>
+
+{% endblock %}

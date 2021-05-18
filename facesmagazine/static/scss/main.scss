@@ -1,0 +1,403 @@
+$gray: #808C74; // rgb(128,140,116)
+$lightgray: rgba(128,140,116, 0.25);
+$gold: rgb(218, 165, 32);
+$dark-gold: rgba(246,190,0,1);
+$content-width: 64vmax;
+$main-with: 90vw;
+$main-padding: 5vh 10vw; // 70vw left
+// $thumbnail-width: 12.5vmax;
+// $thumbnail-height: 16.8vmax;
+$thumbnail-width: 12.5vmax;
+$thumbnail-height: 16.8vmax;
+$issue-margin: 0 1vmax 1vmax 0;
+// menu icon original: #262828
+
+@mixin current-text {
+    font-size: 16px;
+    font-weight: 300;
+    line-height: 19px;
+
+    @media screen and (max-width: 1366px) {
+        font-size: 13px;
+        line-height: 17px;
+    }
+}
+
+@mixin title-zone {
+    .logo-zone {
+        text-align: center;
+        width: 27.6vmax;
+        // margin-bottom: 30px;
+
+        @media screen and (max-width: 600px) {
+            margin-bottom: 0;
+        }
+    }
+
+    .bar {
+        flex-basis: 100%;
+        border-top: 3px solid #000;
+        border-bottom: 3px solid #000;
+        display: flex;
+        margin-bottom: 2vmax;
+        align-items: center;
+
+        @media screen and (max-width: 1366px) {
+            h1 {
+                font-size: 1.3em;
+                line-height: 20px;
+            }
+        }
+        
+        @media screen and (max-width: 600px) {
+            display: block;
+            border: none;
+
+            h1 {
+                text-align: center;
+                // <strong style="white-space: nowrap;">
+            }
+
+            h1, a {
+                margin: 7px;
+                padding: 7px;
+                font-size: 1em;
+            }
+        }
+
+        div {
+            flex-basis: 50%;
+            padding-left: 20px;
+
+            a {
+                text-decoration: underline;
+            }
+        }
+
+        .black {
+            background: #000;
+            color: #FFF;
+        }
+
+        .white {
+            text-align: right;
+        }
+    }
+}
+
+@mixin graypage {
+    width: 50vw;
+    height: 100vh;
+    overflow-y: scroll;
+    scrollbar-color: #000 $lightgray;
+    scrollbar-width: thin;
+    background: $gray;
+
+    @media screen and (max-width: 600px) {
+        width: 100vw;
+    }
+
+    h2 {
+        text-align: left;
+    }
+}
+
+////// GENERAL \\\\\\
+
+@import "general";
+
+////// ACCOUNT MENU \\\\\\
+
+#account {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+
+    @media screen and (max-width: 600px) {
+        width: 100%;
+        text-align: center;
+        background: rgba(0,0,0,0.9);
+    }
+
+    li {
+        display: inline-block;
+        margin: 10px;
+
+        a {
+            color: #000;
+            font-size: large;
+        }
+    }
+}
+
+////// HOME ISSUE \\\\\\
+
+@import "homepage";
+
+////// MAIN MENU \\\\\\
+
+@import "mainmenu";
+
+////// PAGES SECTION \\\\\\
+
+.section-a {
+    // height: 70vh;
+    width: $main-with;
+    padding: $main-padding;
+    transition: 0.75s filter, 0.5s opacity;
+
+    @media screen and (max-width: 600px) {
+        width: auto;
+    }
+}
+
+.section-b {
+    background: #000;
+    color: #FFF;
+    width: 50vw;
+    height: 100vh;
+    font-size: 0.8em;
+    padding: $main-padding 0 25px;
+    position: fixed;
+    top: 0;
+    transition: all 0.5s;
+    z-index: 200;
+
+    @media screen and (max-width: 600px) {
+        width: 100vw;
+        overflow: scroll;
+    }
+
+    .page {
+        color: #FFF;
+        transition: color 0.2s, transform 0.35s;
+
+        a {
+            color: #FFF;
+        }
+    }
+
+    .single div {
+        display: inline-block;
+        vertical-align: top;
+        width: 25vw;
+    }
+
+    .double div {
+        display: inline-block;
+        vertical-align: top;
+        width: 15vw;
+        margin-right: 25px;
+    }
+
+    @media screen and (max-width: 600px) {
+        .single div, .double div {
+            width: 80vw;
+        }
+    }
+
+    .hidden {
+        color: #000;
+        position: absolute;
+        transform: translateX(50vmax);
+
+        @media screen and (max-width: 600px) {
+            transform: translateX(100vmax);
+        }
+    }
+
+    .footer {
+        margin-top: 3em;
+   
+        * {
+            font-size: 0.75em;
+        }
+    }
+
+    #close-icon {
+        width: 24px;
+        position: absolute;
+        top: 5vh;
+        right: 20px;
+        cursor: pointer;
+    }
+}
+
+.section-b-off {
+    right: -50vw;
+
+    @media screen and (max-width: 600px) {
+        right: -100vw;
+    }
+
+}
+
+.section-b-on {
+    right: 0;
+}
+
+////// ARCHIVES SECTION \\\\\\
+
+@import "archives";
+
+
+////// ISSUE DETAIL \\\\\\
+
+@import "issue";
+
+////// SHOP PAGE \\\\\\
+
+#shop {
+    @include graypage;
+}
+
+////// ACCOUNT \\\\\\
+
+#account-form {
+    @include graypage;
+
+    .address, .delivery-address, .approval {
+        padding: 10px;
+        margin-top: 20px;
+        border: 5px solid rgba(0,0,0,0.1);
+    }
+    
+    .delivery-address {
+
+        .title {
+            display: flex;
+            justify-content: space-between;
+
+            h2 {
+                display: inline-block;
+            }
+            
+            #address-checker {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+        }
+    }
+
+    form {
+        text-align: center;
+    }
+
+    form p {
+        display: flex;
+        align-items: center;
+
+        label, input {
+            flex-basis: 50%;
+            text-align: left;
+        }
+    }
+
+    .useful {
+        font-size: 18px;
+        margin: 40px 0;
+        text-align: center;
+
+        a {
+            font-size: 18px;
+        }
+    }
+}
+
+.account {
+    border: 1.2vmax solid transparent;
+}
+
+form {
+    ul {
+        li {
+            display: flex;
+
+            label, input {
+                flex-basis: 50%;
+            }
+        }
+    }
+}
+
+////// CONTACT \\\\\\
+
+#contact-form {
+    @include graypage;
+
+    form {
+        text-align: center;
+    }
+
+    p {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .errorlist {
+        display: none;
+    }
+
+    .errorlist + p {
+        outline: 2px solid darkred;
+        padding: 10px;
+        background: rgba(255,255,255,0.15);
+    }
+
+    .captcha {
+        transition: filter 2s, transform 0.5s, box-shadow 0.5s;
+        cursor: zoom-in;
+
+        &:hover {
+            filter: contrast(2);
+            transform: scale(2);
+            box-shadow: rgba(0,0,0,0.5) 0 0 10px;
+        }
+    }
+
+    
+}
+
+////// IVOICES \\\\\\
+
+@import "invoices";
+
+////// STAFF \\\\\\
+
+#staff-zone {
+    width: 100vw;
+    min-height: 100vh;
+    border: 1.2vmax solid #DDD;
+    border-left: 3em solid #000;
+    background: #DDD;
+
+    @include title-zone;
+
+    .logo-zone {
+        text-align: center;
+        width: 10vmax;
+    }
+
+    h1 {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        writing-mode: vertical-lr;
+        text-orientation: sideways;
+        transform: rotateZ(180deg);
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 0.5em;
+        color: #FFF;
+        margin: 0;
+        padding: 10px;
+    }
+
+    table, th, td {
+        border: 1px solid $gray;
+        border-collapse: collapse;
+        padding: 10px;
+    }
+}

@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block title %}FACES N° {{ issue.number }}{% endblock %}
+
+{% block content %}
+<section id="issue-detail" class="section-a">
+
+    {% include 'magazine/logo-black.html' %}
+    
+    <div class="issue">
+
+        {% if user.is_authenticated %}
+            {% if user.is_staff %}
+                <a href={% url 'subscribers_issue' number=issue.number %}>
+                    <div class="subscribe" style="background: #000;">
+                        <span style="color: #FFF;">liste des abonnés</span>
+                    </div>
+                </a>
+            {% elif shop and customer.subscriber %}
+
+                <a href={% url 'profile' %}>
+                    <div class="subscribe" style="background: #{{ issue.color }};">
+                        <span>Mon abonnement</span>
+                    </div>
+                </a>
+            {% elif shop and not customer.subscriber %}
+                <a href={% url 'shop' %}>
+                    <div class="subscribe" style="background: #{{ issue.color }};">
+                        <span>S'abonner à&nbsp;Faces</span>
+                    </div>
+                </a>
+            {% endif %}
+        {% else %}
+            <a href={% url 'registration' %}>
+                <div class="subscribe" style="background: #{{ issue.color }};">
+                    <span>S'abonner à&nbsp;Faces</span>
+                </div>
+            </a>
+        {% endif %}
+
+        <div class="bar">
+            <div class="black"><h1>N° {% firstof issue.number_display issue.number %} | {{ issue.date }} | {{ issue.theme }}</h1></div>
+            <div class="white"><a href="{% url 'archives' %}">> Revenir à la liste des numéros</a></div>
+            
+        </div>
+
+        {% if issue.image %}
+
+        <div class="issue-image" style="background-image: url({{ issue.image.url }}); background-size: cover;"></div>
+
+        {% else %}
+
+        <div class="issue-image emergency" style="background-image: url({{ issue.thumbnail.url }}); background-size: contain; background-repeat: no-repeat;"></div>
+        
+        {% endif %}
+        
+        <div class="issue-text">
+
+            {% if issue.editorial or issue.extract %}
+
+            <div class="issue-titles">
+                {% if issue.editorial %}
+                <h2 class="issue-title a active">Edito</h2>
+                {% else %}
+                <h2 class="issue-title a active">Extrait</h2>
+                {% endif %}
+                <h2 class="issue-title b">Sommaire</h2>
+            </div>
+
+            <div class="issue-content a">
+                {% if issue.editorial %}
+                    {{ issue.editorial|safe }}
+                {% else %}
+                    {{ issue.extract|safe }}
+                {% endif %}
+            </div>
+
+            <div class="issue-content b hidden">
+                {{ issue.content|safe }}
+            </div>
+
+            {% else %}
+
+            <h2 class="issue-title">Sommaire</h2>
+
+            <div class="issue-content">
+                {{ issue.content|safe }}
+            </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</section>
+{% endblock %}

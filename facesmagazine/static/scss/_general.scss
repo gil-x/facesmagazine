@@ -1,0 +1,161 @@
+.module{}
+
+body {
+    overflow-x: hidden;
+}
+@font-face {
+    font-family:'__Gilroy_5';
+    src:url('../fonts/gilroy_light.eot');
+    src:local('â˜º'), url('../fonts/radomir-tinkov-gilroy-light.woff') format('woff'), url('../fonts/radomir-tinkov-gilroy-light_2.svg') format('svg');
+    font-weight:300;
+    font-style:normal;
+}
+
+@font-face {
+    font-family:'__Gilroy_5';
+    src:url('../fonts/radomir_tinkov_-_gilroy-semibold-webfont.eot');
+    src:local('â˜º'), url('../fonts/radomir_tinkov_-_gilroy-semibold-webfont.woff') format('woff'), url('../fonts/radomir-tinkov-gilroy-semibold.svg') format('svg');
+    font-weight:600;
+    font-style:normal;
+}
+
+*, *:before, *:after {
+    box-sizing: border-box;
+    font-family: '__Gilroy_5', sans-serif;
+}
+
+body, ul {
+    padding: 0;
+    margin: 0;
+}
+
+p, div, span, li, a, input {
+    @include current-text;
+}
+
+a, a * {
+    color: #000;
+    transition: color 0.25s;
+    cursor: pointer;
+}
+
+a:hover {
+    color: #333;
+}
+
+strong, strong > * {
+    font-weight: 900;
+}
+
+input[type="submit"], input[type="button"] {
+    border: none;
+    color: #FFF;
+    background: #333;
+    box-shadow: 1px 2px 5px rgba(0,0,0,0.5);
+    transition: all 0.4s;
+    margin: 20px;
+    padding: 5px 10px;
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+input[type="submit"]:hover {
+    color: #EEE;
+    background: #111;
+    box-shadow: 0px 1px 1px rgba(0,0,0,0.75);
+    text-shadow: 0 0 3px rgba(255,255,255,0.5);
+}
+
+.important {
+    margin: 30px 0;
+    padding: 10px;
+    color: #FFF;
+    background: #000;
+
+    a {
+        color: $dark-gold;
+    }
+
+    a:hover {
+        color: $gold;
+    }
+}
+
+.test {
+    font-family: monospace;
+    margin: 30px 0;
+    padding: 10px;
+    color: #FFF;
+    background: blue;
+}
+
+#pages {
+    overflow-y: scroll;
+}
+
+// SHOP:
+.offers > div {
+    display: flex;
+    margin: 10px;
+    padding: 10px;
+    border: 5px solid $lightgray;
+    background: #EEE;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+
+    h3, p {
+        flex-basis: 100%;
+        margin: 5px 0;
+    }
+}
+
+
+.warning {
+    margin: 30px 0;
+    padding: 10px;
+    color: #FFF;
+    background: DarkRed;
+
+    a {
+        color: #FFF;
+    }
+}
+
+.cgv-alert {
+    width: 100%;
+    text-align: center;
+    color: DarkRed;
+    font-size: 0.9em;
+    opacity: 0;
+    transition: opacity 0.33s;
+}
+
+hr {
+    background: transparent;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+// Smooth effects:
+
+@keyframes appears {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+@keyframes disappears {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+.visible {
+    animation-name: appears;
+    animation-duration: 0.5s;
+    animation-fill-mode: forwards;
+}
+
+.unvisible {
+    animation-name: disappears;
+    animation-duration: 0.5s;
+    animation-fill-mode: forwards;
+}

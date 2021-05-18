@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block title %}FACES | Abonnés{% endblock %}
+
+
+{% block content %}
+
+
+
+<section id="staff-zone" class="section-a">
+
+<h1>administration</h1>
+
+{% include 'magazine/logo-black.html' %}
+
+<h2>Liste des abonnés / ex-abonnés</h2>
+
+    <table>
+        <tr>
+            <td>NOM / RAISON SOCIALE</td>
+            <td>ABONNÉ</td>
+            <td>ADRESSE</td>
+            <td>REGION</td>
+            <td>NUMÉROS DÛS</td>
+        </tr>
+        {% for customer in customers %}
+
+            <tr>
+                <td>{{ customer.name }}</td>
+                {% if customer.subscriber is True%}
+                <td>OUI</td>
+                {% else %}
+                <td>NON {{customer.subscriber}}</td>
+                {% endif %}
+                <td>{{ customer.address }}<br>
+                    {{ customer.postal_code }} {{ customer.city }}
+                    {% if customer.postal_square %}
+                    <br>Case postale : {{ customer.postal_square }}
+                    {% endif %}
+                </td>
+                <td>{{ customer.region }}</td>
+                <td>{{ customer.first_issue }}, {{ customer.first_issue|add:"1" }},
+                {{ customer.first_issue|add:"2" }}, {{ customer.first_issue|add:"3" }}</td>
+                
+            </tr>
+
+
+        {% endfor %}
+    </table>
+
+
+</section>
+
+{% endblock %}

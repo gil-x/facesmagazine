@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load magazine_extras %}
+
+{% block title %}Abonnement à FACES{% endblock %}
+
+{% block extra-js-head %}
+<script src="https://polyfill.io/v3/polyfill.min.js?version=3.52.1&features=fetch"></script>
+<script src="https://js.stripe.com/v3/"></script>
+{% endblock %}
+
+{% block content %}
+<section id="shop" class="section-a">
+    
+    {% include 'magazine/logo-white.html' %}
+
+    <div>
+        <h1>Souscrire un abonnement au magazine</h1>
+
+        {% if profile_is_complete and not request.user.customer.subscriber %}
+
+        <p>Je m'abonne pour 2 ans à partir du numéro {{ next_issue }}.</p>
+
+        <p>Je choisis ma formule :</p>
+
+        <div class="offers">
+
+            {% for subscription in subscriptions %}
+
+            <div>
+                <h3>{{ subscription.name }}</h3>
+                
+                {% if subscription.description %}
+                <p>{{ subscription.description }}</p>
+                {% endif %}
+                
+                <strong>{{ subscription.price }} {{ subscription.currency }}</strong>
+                <a style="border: 0;
+color: #FFF;
+background: #333;
+box-shadow: 1px 2px 5px rgba(0,0,0,0.5);
+transition: all .4s;
+margin: 20px;
+padding: 5px 10px;
+border-radius: 2px;
+cursor: pointer;
+text-decoration: none;" class="pay-button" href="{% url 'create-checkout-session' subscription.id %}">Payer par carte bancaire</a>
+
+                <div class="cgv-alert">Merci d'accepter les conditions générales de vente</div>
+            </div>
+
+            {% endfor %}
+
+            {% csrf_token %}
+            
+        </div>
+
+        <div id="legal-box" style="margin: 30px 0; padding: 10px;">
+            <input type="checkbox" id="legal" name="ok" value="legal">
+            <label for="legal">J'ai pris connaissance des <a href={% url 'legal' %} target="_blank">conditions générales de vente.</a></label>
+        </div>
+
+        {% elif request.user.customer.subscriber %}
+
+        <p>Vous êtes déjà abonné !</p>
+
+        {% else %}
+
+        <p>Avant de passer commande vous devez renseigner une adresse complète dans votre profil.</p>
+
+        <p><a href="{% url 'edit_profile' %}">> Compléter mon profil</a></p>
+
+        {% endif %}
+
+    </div>
+
+</section>
+{% endblock %}
+
+{% block extra-js %}
+<script type="text/javascript">
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const stripe = Stripe("{{ key }}");
+    const payButtons = Array.from(document.querySelectorAll('.pay-button'));
+    const cgvCheck = document.getElementById('legal');
+    const cgvAlerts = Array.from(document.querySelectorAll('.cgv-alert'));
+
+    cgvCheck.addEventListener("change", function(event) {
+        cgvAlerts.forEach(cgvAlert => {
+            cgvAlert.style.opacity = 0;
+        });
+    });
+
+    payButtons.forEach(payButton => {
+
+        payButton.addEventListener("click", function (event) {
+            event.preventDefault();
+
+            if (cgvCheck.checked) {
+
+                fetch(`${event.target.href}`, {
+                    method: "POST",
+                    headers: {
+                        'X-CSRFToken': csrfToken
+                    }
+                })
+                
+                .then(function (response) {
+                return response.json();
+                })
+
+                .then(function (session) {
+                    return stripe.redirectToCheckout({ sessionId: session.id });
+                })
+
+                .then(function (result) {
+
+                if (result.error) {
+                    console.log(result.error.message);
+                }
+                })
+
+                .catch(function (error) {
+                });
+            } else {
+                event.target.nextElementSibling.style.opacity = "1";
+                document.getElementById('shop').scrollTo({
+                    top: 1500,
+                    left: 0,
+                    behavior: 'smooth'
+                });
+            }
+
+        });
+    });
+
+  </script>
+{% endblock %}
