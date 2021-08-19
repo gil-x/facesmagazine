@@ -28,13 +28,16 @@ def get_customer_profile(user):
         return None
 
 
-def index(request):
+def index(request, *args, **kwargs):
     context = {}
     context["homepage"] = True
     context["users"] = Setting.objects.first().users
     context["shop"] = Setting.objects.first().shop
     context["last_issue"] = Issue.objects.order_by('number').last()
     context["pages"] = Page.objects.all()
+    # If request coming from 'prix-faces' URL:
+    if kwargs["price"]:
+        context["price"] = True
     return render(request, 'magazine/index.html', context)
 
 

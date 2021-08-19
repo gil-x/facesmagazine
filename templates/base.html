@@ -75,16 +75,31 @@
 {% block content %}
 {% endblock %}
 
+
+{% if price %}
+<section id="pages" class="section-b section-b-on">
+{% else %}
 <section id="pages" class="section-b section-b-off">
+{% endif %}
     <img id="close-icon" src="{% static 'img/close-icon.svg' %}" alt="" title="Fermer">
 
     {% block menu %}
     <nav id="main-menu">
         <ul>
         {% for page in pages %}
+            {% if price and page.label == "prix Faces" %}
+            <li>
+                <a id="menu-{{ page.position }}" class="menu-item active" href="#">{{page.label}}</a>
+            </li>
+            {% elif not price and page.position == 1 %}
+            <li>
+                <a id="menu-{{ page.position }}" class="menu-item active" href="#">{{page.label}}</a>
+            </li>
+            {% else %}
             <li>
                 <a id="menu-{{ page.position }}" class="menu-item" href="#">{{page.label}}</a>
             </li>
+            {% endif %}
         {% endfor %}
             <li>
                 <a href="{% url 'archives' %}" class="menu-item">numéros</a>
@@ -100,9 +115,15 @@
 
     {% for page in pages %}
         {% if not page.body_extra %}
-        <div id="menu-{{ page.position }}-text" class="page single hidden">
-            <div>{{page.body|safe}}</div>
-        </div>
+            {% if price and page.position == 4 %}
+            <div id="menu-{{ page.position }}-text" class="page single">
+                <div>{{page.body|safe}}</div>
+            </div>
+            {% else %}
+            <div id="menu-{{ page.position }}-text" class="page single hidden">
+                <div>{{page.body|safe}}</div>
+            </div>
+            {% endif %}
         {% else %}
         <div id="menu-{{ page.position }}-text" class="page double hidden">
             <div>{{page.body|safe}}</div>

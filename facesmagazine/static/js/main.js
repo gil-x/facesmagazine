@@ -85,7 +85,10 @@ document.addEventListener("DOMContentLoaded", function(event) {
     setTimeout(function() {
         body.style.opacity = 1;
     }, 2000);
-    pages[0].classList.remove("hidden")
+    // If we are not on 'prix Faces' page
+    if (pages[3].classList.contains("hidden")) {
+        pages[0].classList.remove("hidden")
+    }
 });
 
 

@@ -6,7 +6,8 @@ from . import views
 urlpatterns = [
 
     # Issues
-    path('', views.index, name='index'),
+    path('', views.index, {'price': False}, name='index'),
+    path('prix-faces', views.index, {'price': True}, name='index'),
     path('numeros/', views.archives, name='archives'),
     path('numero/<int:number>', views.issue, name='issue'),
 
