@@ -79,7 +79,7 @@ via le formulaire du site de FACES Magazine
 --
             
 {context["form"].cleaned_data['message']}""" 
-            recipients = ['info@facesmagazine.ch', 'contact@elizaculea.com']
+            recipients = list(settings.CONTACT_RECIPIENTS)
             if copy:
                 recipients.append(email)
             send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, recipients)
@@ -311,8 +311,6 @@ def invoice(request, date):
 def invoices(request):
     context = {}
     context["invoices"] = Order.objects.all()
-    date = Order.objects.first().date
-    print(f"date: {date}")
     return render(request, 'magazine/invoices-all.html', context)
 
 
@@ -394,11 +392,12 @@ via le formulaire du site de FACES Magazine
 --
             
 {context["form"].cleaned_data['message']}""" 
-            recipients = ['info@facesmagazine.ch', 'contact@elizaculea.com', 'g.ladowitch@lautretribu.com']
+            recipients = list(settings.CONTACT_RECIPIENTS)
             if copy:
                 recipients.append(email)
-            for mail in recipients:
-                send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [mail])
+            # Un envoi par destinataire : personne ne découvre les adresses des autres.
+            for recipient in recipients:
+                send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [recipient])
             return render(request, 'magazine/thanks.html')
         # Form not not valid
         else:

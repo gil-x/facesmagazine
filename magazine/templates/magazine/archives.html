@@ -45,7 +45,7 @@
         {% for issue in issues_availables %}
         <a href={% url 'issue' number=issue.number %}>
             <div class="issue">
-                <div class="thumbnail" style="background-image: url({{ issue.thumbnail.url }}); background-size: cover;">
+                <div class="thumbnail" {% if issue.thumbnail %}style="background-image: url({{ issue.thumbnail.url }}); background-size: cover;"{% endif %}>
                     <div class="text" unselectable="on">
                         <p><strong>N° {{ issue.number }}<br>
                         {{ issue.theme }}</strong><br><br>
@@ -60,7 +60,7 @@
         {% for issue in issues_empty %}
         <a href={% url 'issue' number=issue.number %}>
             <div class="issue">
-                <div class="thumbnail" style="background-image: url({{ issue.thumbnail.url }}); background-size: cover;">
+                <div class="thumbnail" {% if issue.thumbnail %}style="background-image: url({{ issue.thumbnail.url }}); background-size: cover;"{% endif %}>
                     <div class="text" unselectable="on">
                         <p><strong>N° {{ issue.number }}<br>
                         {{ issue.theme }}</strong><br><br>
