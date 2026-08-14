@@ -49,6 +49,18 @@ cd facesmagazine/static/scss && ../../../.venv/bin/python compile.py
 
 Cela régénère `static/css/main.css` et `main.min.css`, qui sont versionnés.
 
+## Déploiement
+
+La procédure complète pour Alwaysdata est dans [DEPLOY.md](DEPLOY.md) :
+création du site, variables d'environnement, sauvegardes et surveillance.
+
+Deux scripts, à lancer depuis la racine du projet :
+
+- `scripts/deploy.sh` — dépendances, sauvegarde, migrations, fichiers
+  statiques et contrôle de la configuration de production
+- `scripts/backup.sh` — sauvegarde de la base et des médias, prévu pour une
+  tâche planifiée quotidienne
+
 ## Structure
 
 - `magazine/` — numéros, pages éditoriales, boutique, commandes, exports
