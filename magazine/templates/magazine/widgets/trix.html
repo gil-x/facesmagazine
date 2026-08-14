@@ -1,0 +1,4 @@
+{# La valeur soumise vient du champ caché ; <trix-editor> le tient à jour. #}
+<input type="hidden" name="{{ widget.name }}" id="{{ widget.attrs.id }}"
+       value="{{ widget.value|default_if_none:'' }}">
+<trix-editor input="{{ widget.attrs.id }}" class="trix-content"></trix-editor>

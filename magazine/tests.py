@@ -18,6 +18,7 @@ from facesmagazine.antibot import SEL, reponse_attendue
 
 from .models import Customer, Issue, Order, Page, Setting, Subscription
 from .templatetags import magazine_extras
+from .widgets import TrixWidget
 
 
 class ReferenceDataMixin:
@@ -436,6 +437,46 @@ class StripeWebhookTests(ReferenceDataMixin, TestCase):
 
         self.assertEqual(self.appel().status_code, 200)
         self.assertEqual(Order.objects.count(), 0)
+
+
+class AdminEditorTests(ReferenceDataMixin, TestCase):
+    """Édition du contenu éditorial avec Trix, en remplacement de CKEditor 4."""
+
+    HTML = '<h3>Dossier</h3><p><strong>Habiter le seuil</strong><br>Paolo Amaldi</p>'
+
+    def test_le_widget_restitue_le_html_existant(self):
+        """Le HTML des 83 numéros doit repartir intact dans le champ caché."""
+        rendu = TrixWidget().render('content', self.HTML, attrs={'id': 'id_content'})
+
+        # Échappé dans l'attribut : le navigateur le restitue tel quel à Trix.
+        self.assertIn('&lt;h3&gt;Dossier&lt;/h3&gt;', rendu)
+        self.assertIn('<trix-editor input="id_content"', rendu)
+
+    def test_champ_vide_ne_rend_pas_none(self):
+        rendu = TrixWidget().render('content', None, attrs={'id': 'id_content'})
+        self.assertIn('value=""', rendu)
+        self.assertNotIn('None', rendu)
+
+    def test_la_page_d_administration_charge_trix_et_plus_ckeditor(self):
+        administrateur = User.objects.create_superuser(
+            username="direction", email="direction@example.org",
+            password="motdepasse-solide-42",
+        )
+        self.client.force_login(administrateur)
+
+        response = self.client.get(f"/backdoor/magazine/issue/{self.issue.pk}/change/")
+
+        self.assertEqual(response.status_code, 200)
+        contenu = response.content.decode("utf-8")
+        self.assertIn("<trix-editor", contenu)
+        self.assertIn("trix/trix.umd.min.js", contenu)
+        self.assertNotIn("ckeditor", contenu.lower())
+
+    def test_le_html_survit_a_un_aller_retour_en_base(self):
+        self.issue.content = self.HTML
+        self.issue.save()
+        self.issue.refresh_from_db()
+        self.assertEqual(self.issue.content, self.HTML)
 
 
 class TemplateFilterTests(TestCase):

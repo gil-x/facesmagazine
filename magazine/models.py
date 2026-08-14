@@ -1,5 +1,4 @@
 from django.db import models
-from ckeditor.fields import RichTextField
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 
@@ -35,9 +34,9 @@ class Setting(models.Model):
 class Page(models.Model):
     label = models.CharField(max_length=30, verbose_name=u"Label du menu")
     position = models.IntegerField(default="1")
-    body = RichTextField(null=True, blank=True, verbose_name=u"Texte simple ou colonne 1/2")
-    body_extra = RichTextField(null=True, blank=True, verbose_name=u"Colonne 2/2")
-    footer = RichTextField(null=True, blank=True, verbose_name=u"Mentions en bas de page")
+    body = models.TextField(null=True, blank=True, verbose_name=u"Texte simple ou colonne 1/2")
+    body_extra = models.TextField(null=True, blank=True, verbose_name=u"Colonne 2/2")
+    footer = models.TextField(null=True, blank=True, verbose_name=u"Mentions en bas de page")
 
     class Meta:
         ordering = ['position', 'label']
@@ -57,9 +56,9 @@ class Issue(models.Model):
     price_sfranc = models.FloatField(default=25, verbose_name=u"Prix en francs suisses")
     stock = models.IntegerField(default=0, verbose_name=u"Stock")
     color = models.CharField(max_length=6, default= "808C74", verbose_name=u"Couleur (code hexadécimal)")
-    editorial = RichTextField(null=True, blank=True, verbose_name=u"Edito")
-    content = RichTextField(null=True, blank=True, verbose_name=u"Sommaire")
-    extract = RichTextField(null=True, blank=True, verbose_name=u"Extrait")
+    editorial = models.TextField(null=True, blank=True, verbose_name=u"Edito")
+    content = models.TextField(null=True, blank=True, verbose_name=u"Sommaire")
+    extract = models.TextField(null=True, blank=True, verbose_name=u"Extrait")
 
     class Meta:
         ordering = ['-number']

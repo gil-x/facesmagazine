@@ -5,6 +5,7 @@ Toute la configuration variable d'un environnement à l'autre est lue dans
 l'environnement (ou dans un fichier .env non versionné à la racine du projet).
 Voir .env.example pour la liste des variables et leurs valeurs par défaut.
 """
+import sys
 from pathlib import Path
 
 import environ
@@ -38,7 +39,6 @@ CSRF_TRUSTED_ORIGINS = env('DJANGO_CSRF_TRUSTED_ORIGINS')
 DOMAIN = env('DJANGO_DOMAIN', default='http://127.0.0.1:8000/')
 
 INSTALLED_APPS = [
-    'ckeditor',
     'honeypot',
     'magazine.apps.MagazineConfig',
     'users.apps.UsersConfig',
@@ -125,12 +125,21 @@ STATICFILES_DIRS = [PROJECT_ROOT / 'static']
 MEDIA_URL = '/media/'
 MEDIA_ROOT = Path(env('DJANGO_MEDIA_ROOT', default=str(BASE_DIR / 'media')))
 
+# Le stockage à manifeste (noms de fichiers versionnés, mise en cache longue)
+# suppose que collectstatic a été exécuté. C'est vrai en production, mais
+# l'imposer en développement et pendant les tests n'apporterait rien.
+TESTING = 'test' in sys.argv
+
 STORAGES = {
     'default': {
         'BACKEND': 'django.core.files.storage.FileSystemStorage',
     },
     'staticfiles': {
-        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+        'BACKEND': (
+            'django.contrib.staticfiles.storage.StaticFilesStorage'
+            if DEBUG or TESTING
+            else 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+        ),
     },
 }
 
