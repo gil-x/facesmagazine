@@ -1,0 +1,15 @@
+{% comment %}
+Atteste que la page a bien été chargée par un navigateur. Un client HTTP qui
+poste le formulaire sans exécuter JavaScript laisse ce champ vide, et le
+serveur rejette l'envoi. À inclure dans le bloc extra-js de tout formulaire
+utilisant HumanCheckMixin.
+{% endcomment %}
+<script>
+(function () {
+    var ouverture = document.querySelector('[name="ouverture"]');
+    var presence = document.querySelector('[name="presence"]');
+    if (ouverture && presence) {
+        presence.value = ouverture.value.split('').reverse().join('');
+    }
+})();
+</script>

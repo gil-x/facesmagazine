@@ -14,7 +14,7 @@
     <h1>Nous contacter</h1>
 
     {% if error %}
-    <p class="warning">Votre&nbsp;message&nbsp;n'a&nbsp;pas&nbsp;été&nbsp;envoyé, merci&nbsp;de&nbsp;vérifier&nbsp;le&nbsp;Captcha.</p>
+    <p class="warning">Votre&nbsp;message&nbsp;n'a&nbsp;pas&nbsp;été&nbsp;envoyé, merci&nbsp;de&nbsp;vérifier&nbsp;les&nbsp;champs&nbsp;ci-dessous.</p>
     {% endif %}
 
     <form action="{% url "contact_captcha" %}" method="post">
@@ -23,7 +23,11 @@
         {{ form.as_p }}
         <input type="submit" value="Envoyer" />
     </form>
-    
+
 </section>
 
+{% endblock %}
+
+{% block extra-js %}
+{% include "antibot_script.html" %}
 {% endblock %}

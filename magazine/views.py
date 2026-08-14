@@ -69,32 +69,6 @@ def issue(request, number):
     return render(request, 'magazine/issue.html', context)
 
 
-def contact(request):
-    context = {}
-    context["users"] = Setting.objects.first().users
-    if request.method == 'POST':
-        context["form"] = ContactForm(request.POST)
-        if context["form"].is_valid(): 
-            subject = context["form"].cleaned_data['subject']
-            email = context["form"].cleaned_data['email']
-            copy = context["form"].cleaned_data['copy']
-            message = f"""
-Message de {email},
-envoyé le {datetime.datetime.now()},
-via le formulaire du site de FACES Magazine
---
-            
-{context["form"].cleaned_data['message']}""" 
-            recipients = list(settings.CONTACT_RECIPIENTS)
-            if copy:
-                recipients.append(email)
-            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, recipients)
-            return render(request, 'magazine/thanks.html')
-    else:
-        context["form"] = ContactForm()
-    return render(request, 'magazine/contact.html', context)
-
-
 class Legal(ListView):
     model= Page
     context_object_name = 'pages'

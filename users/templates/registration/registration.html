@@ -62,16 +62,5 @@
 {% endblock %}
 
 {% block extra-js %}
-<script>
-// Atteste que la page a bien été chargée par un navigateur. Un client HTTP
-// qui poste le formulaire sans exécuter JavaScript laisse ce champ vide et
-// le serveur rejette l'inscription.
-(function () {
-    var ouverture = document.querySelector('[name="ouverture"]');
-    var presence = document.querySelector('[name="presence"]');
-    if (ouverture && presence) {
-        presence.value = ouverture.value.split('').reverse().join('');
-    }
-})();
-</script>
+{% include "antibot_script.html" %}
 {% endblock %}

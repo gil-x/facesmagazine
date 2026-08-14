@@ -39,7 +39,6 @@ DOMAIN = env('DJANGO_DOMAIN', default='http://127.0.0.1:8000/')
 
 INSTALLED_APPS = [
     'ckeditor',
-    'captcha',
     'honeypot',
     'magazine.apps.MagazineConfig',
     'users.apps.UsersConfig',

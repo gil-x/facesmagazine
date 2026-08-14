@@ -5,13 +5,16 @@ Ils ne cherchent pas l'exhaustivité : ils vérifient que chaque page se rend,
 que les accès réservés sont bien fermés et que les exports produisent les
 colonnes attendues. C'est le filet de sécurité des montées de version.
 """
+import time
 from datetime import date
 from unittest.mock import Mock, patch
 
-from captcha.models import CaptchaStore
 from django.contrib.auth.models import User
 from django.core import mail
+from django.core import signing
 from django.test import TestCase, override_settings
+
+from facesmagazine.antibot import SEL, reponse_attendue
 
 from .models import Customer, Issue, Order, Page, Setting, Subscription
 from .templatetags import magazine_extras
@@ -93,20 +96,23 @@ class PublicPagesTests(ReferenceDataMixin, TestCase):
         self.assertEqual(self.client.get("/legal/").status_code, 200)
 
 
-# django-simple-captcha fige ses réglages à l'import de captcha.conf.settings :
-# override_settings n'a donc aucun effet, il faut patcher le module du paquet.
-@patch("captcha.conf.settings.CAPTCHA_TEST_MODE", True)
 @override_settings(CONTACT_RECIPIENTS=["redaction@example.org", "info@example.org"])
 class ContactFormTests(ReferenceDataMixin, TestCase):
-    """Le formulaire est protégé par un captcha et un champ leurre (honeypot)."""
+    """Formulaire ouvert aux visiteurs non inscrits, donc le plus exposé.
+
+    Le captcha a été retiré : le lectorat de la revue est âgé et il écartait
+    autant de lecteurs que de robots. Il est remplacé par les contrôles
+    invisibles de HumanCheckMixin, vérifiés ici.
+    """
 
     def _valid_payload(self, **overrides):
+        jeton = signing.dumps(time.time() - 10, salt=SEL)
         payload = {
             "subject": "Question sur un numéro",
             "message": "Bonjour, le numéro 80 est-il encore disponible ?",
             "email": "curieux@example.org",
-            "captcha_0": CaptchaStore.generate_key(),
-            "captcha_1": "PASSED",
+            "ouverture": jeton,
+            "presence": reponse_attendue(jeton),
             "name": "",  # champ leurre : doit rester vide
         }
         payload.update(overrides)
@@ -114,6 +120,26 @@ class ContactFormTests(ReferenceDataMixin, TestCase):
 
     def test_affichage(self):
         self.assertEqual(self.client.get("/contact/").status_code, 200)
+
+    def test_plus_aucun_captcha(self):
+        contenu = self.client.get("/contact/").content.decode("utf-8")
+        self.assertNotIn("captcha", contenu.lower())
+        self.assertIn('name="ouverture"', contenu)
+        self.assertIn('name="presence"', contenu)
+
+    def test_sans_javascript_le_message_est_refuse(self):
+        response = self.client.post("/contact/", self._valid_payload(presence=""))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "magazine/contact.html")
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_envoi_trop_rapide_refuse(self):
+        jeton = signing.dumps(time.time(), salt=SEL)
+        response = self.client.post("/contact/", self._valid_payload(
+            ouverture=jeton, presence=reponse_attendue(jeton),
+        ))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(mail.outbox), 0)
 
     def test_envoi_valide(self):
         response = self.client.post("/contact/", self._valid_payload())
@@ -137,8 +163,8 @@ class ContactFormTests(ReferenceDataMixin, TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(len(mail.outbox), 0)
 
-    def test_captcha_invalide_reaffiche_le_formulaire(self):
-        response = self.client.post("/contact/", self._valid_payload(captcha_1="RATE"))
+    def test_formulaire_incomplet_reaffiche_la_page(self):
+        response = self.client.post("/contact/", self._valid_payload(email="pas-une-adresse"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "magazine/contact.html")
         self.assertEqual(response.context["error"], "True")
