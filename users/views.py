@@ -19,6 +19,7 @@ from django.contrib.sites.shortcuts import get_current_site
 
 
 from django.contrib.auth.decorators import login_required
+from honeypot.decorators import check_honeypot
 
 
 def get_customer_profile(user):
@@ -29,6 +30,7 @@ def get_customer_profile(user):
         return None
 
 
+@check_honeypot(field_name='name')
 def registration(request):
     context = {}
     context["pages"] = Page.objects.all()

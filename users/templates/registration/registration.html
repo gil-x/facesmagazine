@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load honeypot %}
 
 {% block title %}FACES | Créer un compte{% endblock %}
 
@@ -8,7 +9,7 @@
 <section id="account-form" class="section-a">
 
     <div class="account">
-    
+
         {% include 'magazine/logo-white.html' %}
 
         {% if user.is_authenticated %}
@@ -24,7 +25,16 @@
             <form method="post">
                 {% csrf_token %}
 
-                {% for field in form %}
+                {# Champ leurre : invisible, il doit rester vide. #}
+                {% render_honeypot_field "name" %}
+
+                {% for error in form.non_field_errors %}
+                <p style="color: red">{{ error }}</p>
+                {% endfor %}
+
+                {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+
+                {% for field in form.visible_fields %}
                     <p>
                         {{ field.label_tag }}
                         {{ field }}
@@ -42,79 +52,26 @@
         {% endif %}
 
         <div class="useful">
-            J'ai déjà un compte : <a href="{% url 'login' %}">aller à l'écran de connexion</a> 
+            J'ai déjà un compte : <a href="{% url 'login' %}">aller à l'écran de connexion</a>
         </div>
 
     </div>
-    
+
 </section>
 
 {% endblock %}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-{% comment %} 
-
-
-
-{% extends "base.html" %}
-
-{% block title %}Créer un compte{% endblock %}
-
-{% block content %}
-
-
-{% if error %}
-<p><strong>Erreur quelque part...</strong></p>
-{% endif %}
-
-
-<header id="account-header" class="masthead text-center text-white d-flex">
-    <div class="container my-auto">
-        <div id="home-search-block" class="row">
-            <div id="login-box" class="col-lg-10 mx-auto">
-            {% if user.is_authenticated %}
-                <h1>Bonjour {{ user.username }} !</h1>
-            {% else %}
-                <h1 class="text-uppercase"><strong>Créer un compte</strong></h1>
-                <hr>
-                <form method="post">
-                    {% csrf_token %}
-                    {% for field in form %}
-                        <p>
-                            {{ field.label_tag }}
-                            {{ field }}
-                            {% if field.help_text %}
-                            <small style="display: none">{{ field.help_text }}</small>
-                            {% endif %}
-                            {% for error in field.errors %}
-                            <p style="color: red">{{ error }}</p>
-                            {% endfor %}
-                        </p>
-                    {% endfor %}
-                    <input type="submit" value="Créer le compte" />
-                </form>
-
-            {% endif %}
-            </div>
-        </div>
-    </div>
-</header>
-
-{% endblock %} {% endcomment %}
+{% block extra-js %}
+<script>
+// Atteste que la page a bien été chargée par un navigateur. Un client HTTP
+// qui poste le formulaire sans exécuter JavaScript laisse ce champ vide et
+// le serveur rejette l'inscription.
+(function () {
+    var ouverture = document.querySelector('[name="ouverture"]');
+    var presence = document.querySelector('[name="presence"]');
+    if (ouverture && presence) {
+        presence.value = ouverture.value.split('').reverse().join('');
+    }
+})();
+</script>
+{% endblock %}
