@@ -127,6 +127,28 @@ $issue-margin: 0 1vmax 1vmax 0;
             color: #000;
             font-size: large;
         }
+
+        // La déconnexion passe par un formulaire POST (exigence Django 5) :
+        // son bouton doit rester indiscernable des liens voisins.
+        .logout-form {
+            display: inline;
+
+            button {
+                margin: 0;
+                padding: 0;
+                border: 0;
+                background: none;
+                font-family: inherit;
+                font-size: large;
+                color: #000;
+                cursor: pointer;
+                transition: color 0.25s;
+            }
+
+            button:hover {
+                color: #333;
+            }
+        }
     }
 }
 

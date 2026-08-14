@@ -1,0 +1,7 @@
+# Outillage de développement, non nécessaire en production.
+-r requirements.txt
+
+# Compilation des feuilles de style :
+#   cd facesmagazine/static/scss && python compile.py
+libsass==0.23.0
+css-html-js-minify==2.5.5

@@ -199,9 +199,6 @@ Votre facture est disponible à l'adresse {request.scheme + "://" + get_current_
         # Not a POST, redirect to homepage.
         return redirect('index')
 
-from django.contrib.staticfiles.templatetags.staticfiles import static
-from django.contrib.staticfiles.storage import staticfiles_storage
-
 class CreateCheckoutSessionView(View):
     def post(self, request, *args, **kwargs):
         subscription_id = self.kwargs["pk"]
