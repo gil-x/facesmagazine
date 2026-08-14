@@ -143,6 +143,11 @@ class Order(models.Model):
     amount = models.FloatField(null=True, blank=True, verbose_name=u"Montant")
     currency = models.CharField(max_length=12, choices=CURRENCY_CHOICE,
             default="EUROS", verbose_name=u"Devise")
+    # Stripe rejoue ses événements en cas d'erreur réseau ou de timeout.
+    # Cet identifiant permet de reconnaître une session déjà traitée et
+    # d'éviter de créer plusieurs fois la même commande.
+    stripe_session_id = models.CharField(max_length=255, null=True, blank=True,
+            unique=True, verbose_name=u"Session Stripe")
 
     def __str__(self):
         return f"{self.customer.name} - {self.subscription.name} - {self.date} - {self.amount} {self.currency}" 

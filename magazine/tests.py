@@ -6,7 +6,7 @@ que les accès réservés sont bien fermés et que les exports produisent les
 colonnes attendues. C'est le filet de sécurité des montées de version.
 """
 from datetime import date
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from captcha.models import CaptchaStore
 from django.contrib.auth.models import User
@@ -150,12 +150,11 @@ class ShopAccessTests(ReferenceDataMixin, TestCase):
         response = self.client.get("/shop/")
         self.assertRedirects(response, "/accounts/login/?next=/shop/")
 
-    def test_profil_complet_expose_la_cle_stripe(self):
+    def test_profil_complet_ouvre_le_paiement(self):
         self.client.force_login(self.user)
         response = self.client.get("/shop/")
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.context["profile_is_complete"])
-        self.assertIn("key", response.context)
         # Les abonnements proposés suivent la région de livraison du client.
         self.assertIn(self.subscription, response.context["subscriptions"])
 
@@ -165,7 +164,13 @@ class ShopAccessTests(ReferenceDataMixin, TestCase):
         self.client.force_login(self.user)
         response = self.client.get("/shop/")
         self.assertFalse(response.context["profile_is_complete"])
-        self.assertNotIn("key", response.context)
+
+    def test_aucun_script_tiers_sur_la_page_de_paiement(self):
+        """polyfill.io a été compromis en 2024 ; plus aucun script externe ici."""
+        self.client.force_login(self.user)
+        contenu = self.client.get("/shop/").content.decode("utf-8")
+        self.assertNotIn("polyfill.io", contenu)
+        self.assertNotIn("js.stripe.com", contenu)
 
     def test_abonne_est_renvoye_vers_son_profil(self):
         self.customer.subscriber = True
@@ -241,16 +246,169 @@ class StaffExportTests(ReferenceDataMixin, TestCase):
         self.assertIn("CP 42", lignes[1])
 
 
-class StripeWebhookTests(TestCase):
-    def test_signature_invalide_est_rejetee(self):
-        """Sans signature Stripe valide, aucune commande ne doit être créée."""
+class CreateCheckoutSessionTests(ReferenceDataMixin, TestCase):
+    """La session de paiement est créée côté serveur, jamais dans le navigateur."""
+
+    def url(self, subscription=None):
+        pk = (subscription or self.subscription).pk
+        return f"/shop/create-checkout-session/{pk}/"
+
+    def test_anonyme_refuse(self):
+        """Sans ce garde-fou, une session serait ouverte sans utilisateur."""
+        response = self.client.post(self.url())
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/accounts/login/", response["Location"])
+
+    def test_get_refuse(self):
+        self.client.force_login(self.user)
+        self.assertEqual(self.client.get(self.url()).status_code, 405)
+
+    def test_abonnement_inconnu(self):
+        self.client.force_login(self.user)
+        self.assertEqual(self.client.post("/shop/create-checkout-session/9999/").status_code, 404)
+
+    def test_compte_sans_profil_client(self):
+        self.customer.delete()
+        self.client.force_login(self.user)
+        response = self.client.post(self.url())
+        self.assertEqual(response.status_code, 400)
+
+    @patch("magazine.views.stripe.checkout.Session.create")
+    def test_session_creee_et_url_renvoyee(self, session_create):
+        session_create.return_value = Mock(url="https://checkout.stripe.com/c/pay/cs_test_1")
+        self.client.force_login(self.user)
+
+        response = self.client.post(self.url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"url": "https://checkout.stripe.com/c/pay/cs_test_1"})
+
+        arguments = session_create.call_args.kwargs
+        prix = arguments["line_items"][0]["price_data"]
+        # Stripe attend des centimes entiers et un code devise en minuscules.
+        self.assertEqual(prix["unit_amount"], 4000)
+        self.assertEqual(prix["currency"], "chf")
+        self.assertEqual(arguments["mode"], "payment")
+        self.assertEqual(arguments["customer_email"], self.user.email)
+        self.assertEqual(arguments["metadata"], {
+            "user_id": self.user.id, "subscription_id": self.subscription.id,
+        })
+
+    @patch("magazine.views.stripe.checkout.Session.create")
+    def test_montant_arrondi_au_centime(self, session_create):
+        """22.10 € en flottant vaut 2209.9999… centimes : il faut arrondir."""
+        session_create.return_value = Mock(url="https://checkout.stripe.com/c/pay/cs_test_2")
+        self.subscription.price = 22.10
+        self.subscription.save()
+        self.client.force_login(self.user)
+
+        self.client.post(self.url())
+
+        prix = session_create.call_args.kwargs["line_items"][0]["price_data"]
+        self.assertEqual(prix["unit_amount"], 2210)
+
+
+class StripeWebhookTests(ReferenceDataMixin, TestCase):
+    ENDPOINT = "/webhooks/stripe/"
+
+    def evenement(self, session_id="cs_test_1", **metadata_overrides):
+        metadata = {
+            "user_id": str(self.user.id),
+            "subscription_id": str(self.subscription.id),
+        }
+        metadata.update(metadata_overrides)
+        return {
+            "type": "checkout.session.completed",
+            "data": {"object": {"id": session_id, "metadata": metadata}},
+        }
+
+    def appel(self):
+        return self.client.post(
+            self.ENDPOINT, data="{}", content_type="application/json",
+            headers={"stripe-signature": "t=1,v1=peu_importe"},
+        )
+
+    def test_sans_entete_de_signature(self):
+        """Auparavant l'absence d'en-tête provoquait une erreur 500."""
         response = self.client.post(
-            "/webhooks/stripe/",
-            data='{"type": "checkout.session.completed"}',
-            content_type="application/json",
-            headers={"stripe-signature": "t=1,v1=signature_bidon"},
+            self.ENDPOINT, data="{}", content_type="application/json",
         )
         self.assertEqual(response.status_code, 400)
+
+    def test_signature_invalide_est_rejetee(self):
+        response = self.appel()
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(Order.objects.count(), 0)
+
+    def test_get_refuse(self):
+        self.assertEqual(self.client.get(self.ENDPOINT).status_code, 405)
+
+    @patch("magazine.views.stripe.Webhook.construct_event")
+    def test_paiement_enregistre_l_abonnement(self, construct_event):
+        construct_event.return_value = self.evenement()
+
+        self.assertEqual(self.appel().status_code, 200)
+
+        self.customer.refresh_from_db()
+        self.assertTrue(self.customer.subscriber)
+        self.assertEqual(self.customer.subscription, self.subscription)
+        self.assertEqual(self.customer.first_issue, 87)
+
+        commande = Order.objects.get()
+        self.assertEqual(commande.customer, self.customer)
+        self.assertEqual(commande.amount, 40.0)
+        self.assertEqual(commande.currency, "CHF")
+        self.assertEqual(commande.stripe_session_id, "cs_test_1")
+        # Les quatre numéros couverts par l'abonnement.
+        self.assertEqual(commande.order_info, "N° 87-88-89-90")
+
+    @patch("magazine.views.stripe.Webhook.construct_event")
+    def test_un_seul_mail_de_confirmation(self, construct_event):
+        construct_event.return_value = self.evenement()
+        self.appel()
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, [self.user.email])
+
+    @patch("magazine.views.stripe.Webhook.construct_event")
+    def test_rejeu_ne_duplique_pas_la_commande(self, construct_event):
+        """Stripe rejoue ses événements : le traitement doit être idempotent."""
+        construct_event.return_value = self.evenement()
+
+        self.appel()
+        with self.assertLogs("magazine.views", level="INFO") as journal:
+            self.appel()
+            self.appel()
+
+        self.assertEqual(Order.objects.count(), 1)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(len(journal.records), 2)
+        self.assertIn("déjà traitée", journal.output[0])
+
+    @patch("magazine.views.stripe.Webhook.construct_event")
+    def test_deux_paiements_distincts_creent_deux_commandes(self, construct_event):
+        construct_event.return_value = self.evenement(session_id="cs_test_1")
+        self.appel()
+        construct_event.return_value = self.evenement(session_id="cs_test_2")
+        self.appel()
+
+        self.assertEqual(Order.objects.count(), 2)
+
+    @patch("magazine.views.stripe.Webhook.construct_event")
+    def test_metadonnees_inexploitables_sont_ignorees(self, construct_event):
+        """Un utilisateur supprimé entre-temps ne doit pas faire échouer l'accusé."""
+        construct_event.return_value = self.evenement(user_id="999999")
+
+        with self.assertLogs("magazine.views", level="ERROR") as journal:
+            self.assertEqual(self.appel().status_code, 200)
+
+        self.assertEqual(Order.objects.count(), 0)
+        self.assertIn("inexploitable", journal.output[0])
+
+    @patch("magazine.views.stripe.Webhook.construct_event")
+    def test_autre_type_d_evenement_ignore(self, construct_event):
+        construct_event.return_value = {"type": "payment_intent.created", "data": {"object": {}}}
+
+        self.assertEqual(self.appel().status_code, 200)
         self.assertEqual(Order.objects.count(), 0)
 
 

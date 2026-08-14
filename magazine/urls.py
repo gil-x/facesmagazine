@@ -18,7 +18,6 @@ urlpatterns = [
     # path('charge/', faces_views.charge, name='charge'),
     # path('votre-abonnement/<str:type>/', faces_views.charge_custom, name='charge_custom'),
     path('webhooks/stripe/', views.stripe_webhook, name='stripe_webhook'),
-    path('votre-abonnement/', views.subscription, name='subscription'),
     path('facture/<str:date>/', views.invoice, name="invoice"),
     # path('factures/', views.Invoices.as_view(), name="invoices"),
     path('factures/', views.invoices, name="invoices"),

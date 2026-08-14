@@ -154,8 +154,9 @@ SERVER_EMAIL = DEFAULT_FROM_EMAIL
 CONTACT_RECIPIENTS = env('CONTACT_RECIPIENTS') or ['info@facesmagazine.ch']
 
 # --- Stripe -----------------------------------------------------------------
+# La clé publique n'est plus nécessaire : la page de paiement est hébergée
+# par Stripe et le site ne charge aucun script Stripe côté navigateur.
 STRIPE_SECRET_KEY = env('STRIPE_SECRET_KEY', default='')
-STRIPE_PUBLISHABLE_KEY = env('STRIPE_PUBLISHABLE_KEY', default='')
 STRIPE_WEBHOOK_SECRET = env('STRIPE_WEBHOOK_SECRET', default='')
 
 # --- Sécurité ---------------------------------------------------------------
