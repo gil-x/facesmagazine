@@ -28,6 +28,10 @@ ssh COMPTE@ssh-COMPTE.alwaysdata.net
 mkdir -p ~/data/media ~/data/sauvegardes
 ```
 
+Étape à ne pas sauter : sans ces dossiers, le déploiement s'arrête sur
+`unable to open database file`. SQLite a besoin d'écrire non seulement la
+base, mais aussi ses fichiers `-wal` et `-shm` dans le même dossier.
+
 ## 2. Déposer le code
 
 ```bash

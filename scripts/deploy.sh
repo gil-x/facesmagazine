@@ -4,8 +4,15 @@
 # Ne redémarre pas l'application : cela se fait depuis l'administration
 # Alwaysdata, Web > Sites > Redémarrer.
 #
-# Usage : ./scripts/deploy.sh
+# Usage : ./scripts/deploy.sh [--nouvelle-base]
+#
+# --nouvelle-base autorise le déploiement sans base existante. À n'employer
+# que pour une installation réellement vierge : sans cette option, le script
+# refuse de créer une base vide par mégarde.
 set -euo pipefail
+
+NOUVELLE_BASE=0
+[ "${1:-}" = "--nouvelle-base" ] && NOUVELLE_BASE=1
 
 PROJET="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PYTHON="$PROJET/.venv/bin/python"
@@ -43,6 +50,52 @@ if ! "$PYTHON" manage.py check >/dev/null 2>&1; then
     echo >&2
     echo "Compléter $PROJET/.env — voir l'étape 5 de DEPLOY.md." >&2
     exit 1
+fi
+
+# Chemins tels que Django les résout réellement, plutôt que recopiés à la main.
+lire_reglage() {
+    DJANGO_SETTINGS_MODULE=facesmagazine.settings "$PYTHON" -c "
+import django; django.setup()
+from django.conf import settings
+print($1)"
+}
+
+BASE="$(lire_reglage "settings.DATABASES['default']['NAME']")"
+MEDIAS="$(lire_reglage "settings.MEDIA_ROOT")"
+DOSSIER_BASE="$(dirname "$BASE")"
+
+if [ ! -d "$DOSSIER_BASE" ]; then
+    echo "Le dossier de la base n'existe pas : $DOSSIER_BASE" >&2
+    echo "Le créer avec : mkdir -p $DOSSIER_BASE" >&2
+    exit 1
+fi
+
+# SQLite crée des fichiers -wal et -shm à côté de la base : le droit d'écriture
+# sur le dossier est nécessaire, pas seulement sur le fichier.
+if [ ! -w "$DOSSIER_BASE" ]; then
+    echo "Le dossier de la base n'est pas accessible en écriture : $DOSSIER_BASE" >&2
+    echo "SQLite doit pouvoir y créer ses fichiers -wal et -shm." >&2
+    exit 1
+fi
+
+if [ ! -s "$BASE" ] && [ "$NOUVELLE_BASE" -eq 0 ]; then
+    cat >&2 <<FIN
+Base de données absente ou vide : $BASE
+
+Poursuivre créerait une base neuve et le site remonterait sans aucun numéro,
+abonné ni commande. Transférer d'abord la base de production :
+
+    scp db.sqlite3 $USER@ssh-$USER.alwaysdata.net:$BASE
+
+S'il s'agit réellement d'une installation vierge, relancer avec :
+
+    ./scripts/deploy.sh --nouvelle-base
+FIN
+    exit 1
+fi
+
+if [ ! -d "$MEDIAS" ] || [ -z "$(ls -A "$MEDIAS" 2>/dev/null)" ]; then
+    echo "Attention : $MEDIAS est absent ou vide, les couvertures ne s'afficheront pas." >&2
 fi
 
 echo "→ Dépendances"
