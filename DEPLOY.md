@@ -88,9 +88,13 @@ format est `FOO=bar LOREM=ipsum`, séparé par des espaces sur une seule ligne.)
 
 ### Créer le fichier
 
+Le bloc ci-dessous refuse d'écraser un fichier existant. C'est délibéré :
+on reprend souvent une procédure interrompue, et réexécuter un `cat > .env`
+ferait perdre les valeurs déjà saisies, clé secrète comprise.
+
 ```bash
 cd ~/www/facesmagazine
-cat > .env <<'FIN'
+[ -e .env ] && { echo "Un .env existe déjà : le compléter à la main."; } || cat > .env <<'FIN'
 DJANGO_SECRET_KEY=
 DJANGO_DEBUG=False
 DJANGO_ALLOWED_HOSTS=facesmagazine.ch,www.facesmagazine.ch
