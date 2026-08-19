@@ -94,18 +94,18 @@ ferait perdre les valeurs déjà saisies, clé secrète comprise.
 
 ```bash
 cd ~/www/facesmagazine
-[ -e .env ] && { echo "Un .env existe déjà : le compléter à la main."; } || cat > .env <<'FIN'
+[ -e .env ] && { echo "Un .env existe déjà : le compléter à la main."; } || cat > .env <<FIN
 DJANGO_SECRET_KEY=
 DJANGO_DEBUG=False
 DJANGO_ALLOWED_HOSTS=facesmagazine.ch,www.facesmagazine.ch
 DJANGO_CSRF_TRUSTED_ORIGINS=https://facesmagazine.ch,https://www.facesmagazine.ch
 DJANGO_DOMAIN=https://www.facesmagazine.ch/
 
-DJANGO_DB_PATH=/home/COMPTE/data/db.sqlite3
-DJANGO_MEDIA_ROOT=/home/COMPTE/data/media
+DJANGO_DB_PATH=$HOME/data/db.sqlite3
+DJANGO_MEDIA_ROOT=$HOME/data/media
 
 DJANGO_EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
-EMAIL_HOST=smtp-COMPTE.alwaysdata.net
+EMAIL_HOST=smtp-$USER.alwaysdata.net
 EMAIL_PORT=587
 EMAIL_USE_TLS=True
 EMAIL_HOST_USER=
@@ -119,7 +119,11 @@ FIN
 chmod 600 .env
 ```
 
-Remplacer `COMPTE`, puis compléter les valeurs vides. Générer la clé secrète :
+Les chemins et le serveur SMTP sont résolus à la création : `$HOME` et
+`$USER` sont ceux du compte, il n'y a rien à remplacer à la main. Vérifier tout
+de même le nom du serveur SMTP dans l'administration, section e-mails.
+
+Il reste à compléter les valeurs laissées vides. Générer la clé secrète :
 
 ```bash
 .venv/bin/python -c "from django.core.management.utils import get_random_secret_key as k; print(k())"

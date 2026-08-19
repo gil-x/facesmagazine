@@ -64,6 +64,17 @@ BASE="$(lire_reglage "settings.DATABASES['default']['NAME']")"
 MEDIAS="$(lire_reglage "settings.MEDIA_ROOT")"
 DOSSIER_BASE="$(dirname "$BASE")"
 
+# Le guide a longtemps utilisé « COMPTE » comme espace réservé. En oublier un
+# donne une erreur déroutante : le dossier semble exister alors que le chemin
+# configuré désigne un autre endroit.
+if grep -q 'COMPTE' "$PROJET/.env"; then
+    echo "Le fichier .env contient encore l'espace réservé « COMPTE » :" >&2
+    grep -n 'COMPTE' "$PROJET/.env" | sed 's/^/  /' >&2
+    echo >&2
+    echo "Le remplacer par le nom du compte :  sed -i \"s/COMPTE/\$USER/g\" .env" >&2
+    exit 1
+fi
+
 if [ ! -d "$DOSSIER_BASE" ]; then
     echo "Le dossier de la base n'existe pas : $DOSSIER_BASE" >&2
     echo "Le créer avec : mkdir -p $DOSSIER_BASE" >&2
