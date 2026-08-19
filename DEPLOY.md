@@ -67,29 +67,43 @@ Le répertoire de travail doit bien être la racine du projet, sinon
 ## 5. Déclarer les variables d'environnement
 
 Toujours dans la configuration du site. Elles ont **priorité sur un éventuel
-fichier `.env`**, ce qui évite d'écrire le moindre secret sur le disque.
+fichier `.env`**, ce qui évite d'écrire le moindre secret sur le disque du
+serveur.
 
-La liste complète et commentée est dans [.env.example](.env.example). Au
-minimum :
+Le champ attend les paires **séparées par des espaces, sur une seule ligne** :
+`FOO=bar LOREM=ipsum`. Ce n'est donc pas la mise en forme de
+[.env.example](.env.example), qui reste celle du fichier `.env` en local.
+
+Conséquence à ne pas manquer : **aucune valeur ne peut contenir d'espace**,
+l'espace servant de séparateur. En pratique cela ne concerne que le mot de
+passe SMTP — si celui-ci en contient un, le régénérer sans espace.
+
+À quoi sert chaque variable :
+
+| Variable | Valeur |
+|---|---|
+| `DJANGO_SECRET_KEY` | une clé neuve, voir ci-dessous |
+| `DJANGO_DEBUG` | `False` |
+| `DJANGO_ALLOWED_HOSTS` | les domaines servis, séparés par des virgules |
+| `DJANGO_CSRF_TRUSTED_ORIGINS` | les mêmes, **avec le schéma `https://`** |
+| `DJANGO_DOMAIN` | URL publique **avec le slash final**, utilisée par Stripe |
+| `DJANGO_DB_PATH` | la base, hors du dossier du code |
+| `DJANGO_MEDIA_ROOT` | les couvertures, hors du dossier du code |
+| `DJANGO_EMAIL_BACKEND` | le backend SMTP, sinon les mails partent dans le vide |
+| `EMAIL_*` | le compte d'envoi Alwaysdata |
+| `DEFAULT_FROM_EMAIL` | expéditeur des messages du site |
+| `CONTACT_RECIPIENTS` | destinataires du formulaire de contact, virgules |
+| `STRIPE_SECRET_KEY` | `sk_test_…` tant qu'on valide, `sk_live_…` ensuite |
+| `STRIPE_WEBHOOK_SECRET` | `whsec_…`, obtenu à l'étape 8 |
+
+Bloc à coller, après avoir remplacé `COMPTE` et les valeurs en attente :
 
 ```
-DJANGO_SECRET_KEY          une clé neuve, voir ci-dessous
-DJANGO_DEBUG               False
-DJANGO_ALLOWED_HOSTS       facesmagazine.ch,www.facesmagazine.ch
-DJANGO_CSRF_TRUSTED_ORIGINS  https://facesmagazine.ch,https://www.facesmagazine.ch
-DJANGO_DOMAIN              https://www.facesmagazine.ch/
-DJANGO_DB_PATH             /home/COMPTE/data/db.sqlite3
-DJANGO_MEDIA_ROOT          /home/COMPTE/data/media
-DJANGO_EMAIL_BACKEND       django.core.mail.backends.smtp.EmailBackend
-EMAIL_HOST                 smtp-COMPTE.alwaysdata.net
-EMAIL_PORT                 587
-EMAIL_HOST_USER            …
-EMAIL_HOST_PASSWORD        …
-DEFAULT_FROM_EMAIL         info@facesmagazine.ch
-CONTACT_RECIPIENTS         info@facesmagazine.ch,…
-STRIPE_SECRET_KEY          sk_live_… (sk_test_… tant qu'on valide)
-STRIPE_WEBHOOK_SECRET      whsec_… fourni à l'étape 8
+DJANGO_SECRET_KEY=… DJANGO_DEBUG=False DJANGO_ALLOWED_HOSTS=facesmagazine.ch,www.facesmagazine.ch DJANGO_CSRF_TRUSTED_ORIGINS=https://facesmagazine.ch,https://www.facesmagazine.ch DJANGO_DOMAIN=https://www.facesmagazine.ch/ DJANGO_DB_PATH=/home/COMPTE/data/db.sqlite3 DJANGO_MEDIA_ROOT=/home/COMPTE/data/media DJANGO_EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend EMAIL_HOST=smtp-COMPTE.alwaysdata.net EMAIL_PORT=587 EMAIL_USE_TLS=True EMAIL_HOST_USER=… EMAIL_HOST_PASSWORD=… DEFAULT_FROM_EMAIL=info@facesmagazine.ch CONTACT_RECIPIENTS=info@facesmagazine.ch STRIPE_SECRET_KEY=… STRIPE_WEBHOOK_SECRET=…
 ```
+
+Tout tient sur une seule ligne : l'affichage ci-dessus la fait défiler, ne pas
+la couper au collage.
 
 Générer la clé secrète :
 
