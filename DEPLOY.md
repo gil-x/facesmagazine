@@ -194,7 +194,19 @@ Puis, dans un navigateur : la page d'accueil, un numéro avec sa couverture
 (vérifie que `DJANGO_MEDIA_ROOT` est bon), le formulaire de contact, la
 connexion, et `/backdoor/` pour l'administration.
 
-Les journaux d'erreur sont dans `/home/COMPTE/admin/logs/uwsgi/`.
+Les journaux d'erreur sont dans `/home/COMPTE/admin/logs/uwsgi/`. Le site y
+écrit à chaque démarrage la configuration qu'il utilise **réellement** :
+
+```
+Site démarré — DEBUG=False, base=/home/COMPTE/data/db.sqlite3, médias=…, hôtes=[…]
+```
+
+C'est la première chose à regarder devant une erreur inexpliquée. Si ces
+chemins ne sont pas ceux du `.env`, c'est que le champ « Variables
+d'environnement » de l'administration n'est pas vide : il a priorité sur le
+fichier pour le site, mais reste invisible aux commandes SSH. Une base
+parfaitement accessible en ligne de commande donne alors un
+`unable to open database file` côté site.
 
 ## 8. Webhook Stripe
 
