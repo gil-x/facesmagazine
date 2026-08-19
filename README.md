@@ -54,9 +54,10 @@ Cela régénère `static/css/main.css` et `main.min.css`, qui sont versionnés.
 La procédure complète pour Alwaysdata est dans [DEPLOY.md](DEPLOY.md) :
 création du site, variables d'environnement, sauvegardes et surveillance.
 
-Attention à la mise en forme des variables : Alwaysdata les attend séparées
-par des espaces sur une seule ligne (`FOO=bar LOREM=ipsum`), là où le fichier
-`.env` local en veut une par ligne. DEPLOY.md donne le bloc prêt à coller.
+En production comme en local, la configuration passe par un fichier `.env` à
+la racine du projet. Le champ « Variables d'environnement » de l'administration
+Alwaysdata n'alimente que le processus qui sert le site, pas les commandes
+lancées en SSH : l'utiliser ferait échouer `deploy.sh`.
 
 Deux scripts, à lancer depuis la racine du projet :
 

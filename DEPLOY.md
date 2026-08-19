@@ -64,25 +64,80 @@ rsync -avz media/ COMPTE@ssh-COMPTE.alwaysdata.net:~/data/media/
 Le répertoire de travail doit bien être la racine du projet, sinon
 `facesmagazine.settings` reste introuvable.
 
-## 5. Déclarer les variables d'environnement
+## 5. Déclarer la configuration
 
-Toujours dans la configuration du site. Elles ont **priorité sur un éventuel
-fichier `.env`**, ce qui évite d'écrire le moindre secret sur le disque du
-serveur.
+Deux choses ont besoin de cette configuration : **le site servi par uWSGI**, et
+**les commandes lancées en SSH** (migrations, fichiers statiques, sauvegardes).
 
-Le champ attend les paires **séparées par des espaces, sur une seule ligne** :
-`FOO=bar LOREM=ipsum`. Ce n'est donc pas la mise en forme de
-[.env.example](.env.example), qui reste celle du fichier `.env` en local.
+Le champ « Variables d'environnement » de l'administration n'alimente que le
+premier : il est transmis au processus du site, pas à une session SSH. Y
+déclarer la configuration fait donc échouer `deploy.sh` avec
+`Set the DJANGO_SECRET_KEY environment variable`.
 
-Conséquence à ne pas manquer : **aucune valeur ne peut contenir d'espace**,
-l'espace servant de séparateur. En pratique cela ne concerne que le mot de
-passe SMTP — si celui-ci en contient un, le régénérer sans espace.
+On utilise donc un **fichier `.env` à la racine du projet**, que Django lit
+dans les deux cas. Une seule source, aucune dérive possible.
+
+**Laisser vide le champ « Variables d'environnement » de l'administration.**
+S'il est rempli, il a priorité sur le fichier pour le site mais pas pour les
+commandes : les deux finiraient par diverger sans prévenir. (Pour mémoire, son
+format est `FOO=bar LOREM=ipsum`, séparé par des espaces sur une seule ligne.)
+
+### Créer le fichier
+
+```bash
+cd ~/www/facesmagazine
+cat > .env <<'FIN'
+DJANGO_SECRET_KEY=
+DJANGO_DEBUG=False
+DJANGO_ALLOWED_HOSTS=facesmagazine.ch,www.facesmagazine.ch
+DJANGO_CSRF_TRUSTED_ORIGINS=https://facesmagazine.ch,https://www.facesmagazine.ch
+DJANGO_DOMAIN=https://www.facesmagazine.ch/
+
+DJANGO_DB_PATH=/home/COMPTE/data/db.sqlite3
+DJANGO_MEDIA_ROOT=/home/COMPTE/data/media
+
+DJANGO_EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+EMAIL_HOST=smtp-COMPTE.alwaysdata.net
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=
+EMAIL_HOST_PASSWORD=
+DEFAULT_FROM_EMAIL=info@facesmagazine.ch
+CONTACT_RECIPIENTS=info@facesmagazine.ch
+
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+FIN
+chmod 600 .env
+```
+
+Remplacer `COMPTE`, puis compléter les valeurs vides. Générer la clé secrète :
+
+```bash
+.venv/bin/python -c "from django.core.management.utils import get_random_secret_key as k; print(k())"
+```
+
+Changer `DJANGO_SECRET_KEY` déconnecte tout le monde et invalide les liens de
+réinitialisation de mot de passe en cours. Sans conséquence ici : la clé
+d'origine n'est de toute façon plus disponible.
+
+`STRIPE_WEBHOOK_SECRET` reste vide jusqu'à l'étape 8, qui exige que le domaine
+soit en place.
+
+### Deux précautions
+
+Le fichier n'est pas versionné et vit dans le dossier du code : **un
+`git clone` neuf ne le ramènera pas**. Garder les valeurs dans un gestionnaire
+de mots de passe, accessible à au moins deux personnes de l'association.
+
+`chmod 600` n'est pas décoratif : sans lui, le fichier est lisible par les
+autres comptes de la machine.
 
 À quoi sert chaque variable :
 
 | Variable | Valeur |
 |---|---|
-| `DJANGO_SECRET_KEY` | une clé neuve, voir ci-dessous |
+| `DJANGO_SECRET_KEY` | une clé neuve, voir ci-dessus |
 | `DJANGO_DEBUG` | `False` |
 | `DJANGO_ALLOWED_HOSTS` | les domaines servis, séparés par des virgules |
 | `DJANGO_CSRF_TRUSTED_ORIGINS` | les mêmes, **avec le schéma `https://`** |
@@ -96,24 +151,15 @@ passe SMTP — si celui-ci en contient un, le régénérer sans espace.
 | `STRIPE_SECRET_KEY` | `sk_test_…` tant qu'on valide, `sk_live_…` ensuite |
 | `STRIPE_WEBHOOK_SECRET` | `whsec_…`, obtenu à l'étape 8 |
 
-Bloc à coller, après avoir remplacé `COMPTE` et les valeurs en attente :
-
-```
-DJANGO_SECRET_KEY=… DJANGO_DEBUG=False DJANGO_ALLOWED_HOSTS=facesmagazine.ch,www.facesmagazine.ch DJANGO_CSRF_TRUSTED_ORIGINS=https://facesmagazine.ch,https://www.facesmagazine.ch DJANGO_DOMAIN=https://www.facesmagazine.ch/ DJANGO_DB_PATH=/home/COMPTE/data/db.sqlite3 DJANGO_MEDIA_ROOT=/home/COMPTE/data/media DJANGO_EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend EMAIL_HOST=smtp-COMPTE.alwaysdata.net EMAIL_PORT=587 EMAIL_USE_TLS=True EMAIL_HOST_USER=… EMAIL_HOST_PASSWORD=… DEFAULT_FROM_EMAIL=info@facesmagazine.ch CONTACT_RECIPIENTS=info@facesmagazine.ch STRIPE_SECRET_KEY=… STRIPE_WEBHOOK_SECRET=…
-```
-
-Tout tient sur une seule ligne : l'affichage ci-dessus la fait défiler, ne pas
-la couper au collage.
-
-Générer la clé secrète :
+### Vérifier avant d'aller plus loin
 
 ```bash
-.venv/bin/python -c "from django.core.management.utils import get_random_secret_key as k; print(k())"
+.venv/bin/python manage.py check --deploy
 ```
 
-Changer `DJANGO_SECRET_KEY` déconnecte tout le monde et invalide les liens de
-réinitialisation de mot de passe en cours. Sans conséquence ici : la clé
-d'origine n'est de toute façon plus disponible.
+Ne doit rien signaler. En cas d'erreur `Set the … environment variable`, le
+fichier `.env` n'est pas là où Django le cherche : il doit être à la racine du
+projet, à côté de `manage.py`.
 
 ## 6. Première mise en service
 
