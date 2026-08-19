@@ -490,3 +490,40 @@ class TemplateFilterTests(TestCase):
         ht = float(magazine_extras.ht(prix))
         tva = float(magazine_extras.vat(prix))
         self.assertAlmostEqual(ht + tva, prix, places=6)
+
+
+class MediaServingTests(TestCase):
+    """Les couvertures doivent être servies hors mode debug.
+
+    Django s'y refuse par construction : urls.static() ne produit aucune route
+    dès que DEBUG vaut False. Le site est parti en ligne sans aucune image, et
+    rien ne l'avait signalé parce que tout fonctionnait en développement.
+    Ce test tourne avec DEBUG=False, comme toute la suite.
+    """
+
+    def couverture(self):
+        from django.conf import settings
+        from pathlib import Path
+        fichiers = sorted(Path(settings.MEDIA_ROOT).glob('issues/*'))
+        return next((f for f in fichiers if f.is_file()), None)
+
+    def test_une_couverture_est_servie(self):
+        fichier = self.couverture()
+        if fichier is None:
+            self.skipTest("aucun fichier dans MEDIA_ROOT")
+
+        from django.test import Client
+        response = Client().get(f"/media/issues/{fichier.name}")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertGreater(len(b"".join(response.streaming_content)
+                               if response.streaming else response.content), 0)
+
+    def test_un_fichier_absent_ne_renvoie_pas_200(self):
+        response = self.client.get("/media/issues/inexistant-xyz.png")
+        self.assertEqual(response.status_code, 404)
+
+    def test_la_base_n_est_pas_exposee(self):
+        """Seul MEDIA_ROOT est publié, pas son dossier parent."""
+        for chemin in ("/media/../db.sqlite3", "/db.sqlite3", "/media/db.sqlite3"):
+            self.assertNotEqual(self.client.get(chemin).status_code, 200, chemin)

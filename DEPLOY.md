@@ -194,6 +194,10 @@ Puis, dans un navigateur : la page d'accueil, un numéro avec sa couverture
 (vérifie que `DJANGO_MEDIA_ROOT` est bon), le formulaire de contact, la
 connexion, et `/backdoor/` pour l'administration.
 
+Les couvertures sont servies par `StaticAndMediaMiddleware`, pas par une
+configuration de l'hébergeur : il n'y a rien à déclarer côté Alwaysdata pour
+`/media/`, et le comportement est le même en développement et en production.
+
 Les journaux d'erreur sont dans `/home/COMPTE/admin/logs/uwsgi/`. Le site y
 écrit à chaque démarrage la configuration qu'il utilise **réellement** :
 

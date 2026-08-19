@@ -52,7 +52,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'facesmagazine.middleware.StaticAndMediaMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -129,6 +129,12 @@ MEDIA_ROOT = Path(env('DJANGO_MEDIA_ROOT', default=str(BASE_DIR / 'media')))
 # suppose que collectstatic a été exécuté. C'est vrai en production, mais
 # l'imposer en développement et pendant les tests n'apporterait rien.
 TESTING = 'test' in sys.argv
+
+# L'index des fichiers est construit au démarrage. Sans réactualisation, une
+# couverture ajoutée depuis l'administration resterait introuvable jusqu'au
+# prochain redémarrage du site. Le coût est un accès disque par requête,
+# négligeable au trafic de ce site.
+WHITENOISE_AUTOREFRESH = True
 
 STORAGES = {
     'default': {

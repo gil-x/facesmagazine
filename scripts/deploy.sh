@@ -109,6 +109,19 @@ if [ ! -d "$MEDIAS" ] || [ -z "$(ls -A "$MEDIAS" 2>/dev/null)" ]; then
     echo "Attention : $MEDIAS est absent ou vide, les couvertures ne s'afficheront pas." >&2
 fi
 
+# collectstatic ne produit le manifeste des fichiers statiques qu'en mode
+# production. Déployer avec DEBUG=True laisserait donc le site sans manifeste,
+# et toute page utilisant {% static %} renverrait une erreur 500 dès que la
+# configuration effective du serveur repasse à DEBUG=False.
+if [ "$("$PYTHON" -c "
+import os; os.environ.setdefault('DJANGO_SETTINGS_MODULE','facesmagazine.settings')
+import django; django.setup()
+from django.conf import settings; print(settings.DEBUG)")" != "False" ]; then
+    echo "DJANGO_DEBUG vaut True dans $PROJET/.env" >&2
+    echo "Un site en production doit tourner avec DJANGO_DEBUG=False." >&2
+    exit 1
+fi
+
 echo "→ Dépendances"
 "$PIP" install --quiet --upgrade -r requirements.txt
 

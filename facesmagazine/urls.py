@@ -1,7 +1,5 @@
 from django.contrib import admin
 from django.urls import path, include
-from django.conf import settings
-from django.conf.urls.static import static
 
 from magazine import views as magazine_views
 
@@ -21,4 +19,9 @@ urlpatterns = [
     # admin (l'URL est volontairement inhabituelle : /admin/ n'existe pas)
     path('backdoor/', admin.site.urls),
 
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
+
+# Les fichiers de MEDIA_ROOT sont servis par StaticAndMediaMiddleware, en
+# développement comme en production. L'assistant static() n'est pas employé :
+# il ne produit aucune route hors mode debug, ce qui faisait disparaître les
+# couvertures une fois le site en ligne.
