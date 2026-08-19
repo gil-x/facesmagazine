@@ -1,0 +1,28 @@
+/* Intégration de Trix dans l'administration Django.
+   Trix fournit ses propres styles ; il ne reste qu'à lui donner une taille
+   confortable et à l'aligner sur les champs voisins de l'admin. */
+
+trix-editor {
+    min-height: 18em;
+    max-width: 60em;
+    padding: 0.6em 0.8em;
+    border: 1px solid var(--border-color, #ccc);
+    border-radius: 4px;
+    background: var(--form-input-bg, #fff);
+    color: var(--body-fg, #333);
+    line-height: 1.5;
+}
+
+trix-editor:focus {
+    outline: none;
+    border-color: var(--body-quiet-color, #666);
+}
+
+trix-toolbar {
+    max-width: 60em;
+}
+
+/* Les sommaires sont longs : de l'air entre les paragraphes aide à la relecture. */
+trix-editor p {
+    margin-bottom: 0.6em;
+}

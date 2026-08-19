@@ -5,7 +5,7 @@ from django.contrib.auth import login
 
 from django.template.loader import render_to_string
 from django.core.mail import EmailMessage
-from django.utils.encoding import force_bytes, force_text
+from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from .tokens import account_activation_token
 
@@ -19,6 +19,7 @@ from django.contrib.sites.shortcuts import get_current_site
 
 
 from django.contrib.auth.decorators import login_required
+from honeypot.decorators import check_honeypot
 
 
 def get_customer_profile(user):
@@ -29,6 +30,7 @@ def get_customer_profile(user):
         return None
 
 
+@check_honeypot(field_name='name')
 def registration(request):
     context = {}
     context["pages"] = Page.objects.all()
@@ -45,7 +47,7 @@ def registration(request):
             message = render_to_string('registration/acc_active_email.html', {
                 'user': user,
                 'domain': current_site.domain,
-                'uid': urlsafe_base64_encode(force_bytes(user.pk)).encode().decode(),
+                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
                 'token': account_activation_token.make_token(user),
             })
             to_email = context["form"].cleaned_data.get('email')

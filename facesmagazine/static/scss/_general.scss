@@ -3,20 +3,23 @@
 body {
     overflow-x: hidden;
 }
+// Les déclarations d'origine listaient aussi des .eot (Internet Explorer 8)
+// et des .svg, deux formats abandonnés par tous les navigateurs actuels ;
+// le .eot de la graisse Light n'a d'ailleurs jamais existé dans le dépôt.
 @font-face {
     font-family:'__Gilroy_5';
-    src:url('../fonts/gilroy_light.eot');
-    src:local('â˜º'), url('../fonts/radomir-tinkov-gilroy-light.woff') format('woff'), url('../fonts/radomir-tinkov-gilroy-light_2.svg') format('svg');
+    src:url('../fonts/radomir-tinkov-gilroy-light.woff') format('woff');
     font-weight:300;
     font-style:normal;
+    font-display:swap;
 }
 
 @font-face {
     font-family:'__Gilroy_5';
-    src:url('../fonts/radomir_tinkov_-_gilroy-semibold-webfont.eot');
-    src:local('â˜º'), url('../fonts/radomir_tinkov_-_gilroy-semibold-webfont.woff') format('woff'), url('../fonts/radomir-tinkov-gilroy-semibold.svg') format('svg');
+    src:url('../fonts/radomir_tinkov_-_gilroy-semibold-webfont.woff') format('woff');
     font-weight:600;
     font-style:normal;
+    font-display:swap;
 }
 
 *, *:before, *:after {

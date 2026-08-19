@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load staticfiles %}
+{% load static %}
 
 {% block title %}FACES N° {{ issue.number }}{% endblock %}
 
@@ -49,10 +49,10 @@
 
         <div class="issue-image" style="background-image: url({{ issue.image.url }}); background-size: cover;"></div>
 
-        {% else %}
+        {% elif issue.thumbnail %}
 
         <div class="issue-image emergency" style="background-image: url({{ issue.thumbnail.url }}); background-size: contain; background-repeat: no-repeat;"></div>
-        
+
         {% endif %}
         
         <div class="issue-text">

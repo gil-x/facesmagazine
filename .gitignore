@@ -1,11 +1,19 @@
 *.pyc
-.vscode
-/venv
 __pycache__
+.vscode
+
+# Environnements virtuels
+/venv
+/.venv
+
+# Secrets et configuration locale
+.env
+
+# Données : sauvegardées séparément, jamais dans le dépôt
+db.sqlite3*
+/media/
+
+# Généré par collectstatic
+/staticfiles/
 
 /_w
-/media/issues/*
-/facesmagazine/settings_specific.py
-/facesmagazine/settings_specific_pp.py
-/facesmagazine/settings_specific_prod.py
-db.sqlite3

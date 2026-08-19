@@ -18,8 +18,7 @@ urlpatterns = [
     # Legal
     path('legal/', magazine_views.Legal.as_view(), name='legal'),
 
-    # admin
-    path('admin/', include('admin_honeypot.urls', namespace='admin_honeypot')),
+    # admin (l'URL est volontairement inhabituelle : /admin/ n'existe pas)
     path('backdoor/', admin.site.urls),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

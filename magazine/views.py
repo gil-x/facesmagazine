@@ -1,20 +1,26 @@
-import datetime, csv
+import csv
+import datetime
+import logging
+
 import stripe
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from .models import Setting, Page, Issue, Subscription, Customer, Order
 from .forms import ContactForm
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth.models import User
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import TemplateView, DetailView, ListView
+from django.views.decorators.http import require_POST
+from django.views.generic import ListView
 from django.views import View
 from honeypot.decorators import check_honeypot
+
+logger = logging.getLogger(__name__)
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -63,32 +69,6 @@ def issue(request, number):
     return render(request, 'magazine/issue.html', context)
 
 
-def contact(request):
-    context = {}
-    context["users"] = Setting.objects.first().users
-    if request.method == 'POST':
-        context["form"] = ContactForm(request.POST)
-        if context["form"].is_valid(): 
-            subject = context["form"].cleaned_data['subject']
-            email = context["form"].cleaned_data['email']
-            copy = context["form"].cleaned_data['copy']
-            message = f"""
-Message de {email},
-envoyé le {datetime.datetime.now()},
-via le formulaire du site de FACES Magazine
---
-            
-{context["form"].cleaned_data['message']}""" 
-            recipients = ['info@facesmagazine.ch', 'contact@elizaculea.com']
-            if copy:
-                recipients.append(email)
-            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, recipients)
-            return render(request, 'magazine/thanks.html')
-    else:
-        context["form"] = ContactForm()
-    return render(request, 'magazine/contact.html', context)
-
-
 class Legal(ListView):
     model= Page
     context_object_name = 'pages'
@@ -111,7 +91,6 @@ def shop(request):
 
     if customer_profile.address and customer_profile.postal_code and customer_profile.city:
         context["profile_is_complete"] = True
-        context['key'] = settings.STRIPE_PUBLISHABLE_KEY
     else:
         context["profile_is_complete"] = False
 
@@ -121,103 +100,32 @@ def shop(request):
     return render(request, 'magazine/shop.html', context)
 
 
-def subscription(request):
-    context = {}
-    customer_profiles = request.user.customer_set
-    if customer_profiles.count() == 1:
-        customer_profile = customer_profiles.first()
-    else:
-        # TODO send to another page
-        pass
+class CreateCheckoutSessionView(LoginRequiredMixin, View):
+    """Ouvre une session Stripe Checkout et renvoie l'URL de paiement.
 
-    subscriptions = Subscription.objects.filter(region=customer_profile.delivery_region)
-    subscription = Subscription.objects.filter(region=customer_profile.delivery_region, name=request.POST.get('package')).first()
+    Le client est ensuite redirigé vers cette URL par le navigateur ; c'est
+    la méthode recommandée par Stripe depuis l'abandon de redirectToCheckout.
+    """
 
-    print(f"*** subscription: {subscription}")
-
-    if request.method == 'POST':
-        paid = False
-        # paid = True
-        print(f"request.POST.get('package')= {request.POST.get('package')}")
-
-        if request.POST.get('package') in [s.name for s in subscriptions]:
-            print("Package OK")
-            context["subscription"] = request.POST.get('package')
-        else:
-            print("Package not OK")
-            print(f"[s.name for s in subscriptions] : {[s.name for s in subscriptions]}")
-
-        try:
-            # Create charge
-            charge = stripe.Charge.create(
-                amount=int(subscription.price * 100),
-                currency=Subscription.objects.filter(region=customer_profile.delivery_region).first().currency.lower(),
-                description=request.POST.get('package'),
-                source=request.POST['stripeToken'],
-                receipt_email=request.user.email,
-            )
-
-            paid = True
-            # TODO test and rise custom error if value not possible
-        except stripe.error.CardError as e:
-            # The card has been declined
-            pass
-
-        if paid:
-            customer_profile.subscriber = True
-            customer_profile.subscription = subscription
-            customer_profile.first_issue = Setting.objects.first().next_issue
-            customer_profile.subscription_date = datetime.date.today()
-            customer_profile.save()
-
-            order = Order()
-            order.customer = customer_profile
-            order.item = 'SUBSC'
-            order.subscription = subscription
-            order.date = datetime.date.today()
-            order.amount = subscription.price
-            order.currency = subscription.currency
-            order.order_info = f"N° {Setting.objects.first().next_issue}-{Setting.objects.first().next_issue + 1}-{Setting.objects.first().next_issue + 2}-{Setting.objects.first().next_issue + 3}"
-            order.save()
-
-            subject = "Votre abonnement à Faces Magazine"
-            message = f"""
-Vous êtes à présent abonné à la revue Faces, vous recevrez les 4 prochains numéros.
-Prochain numéro : {Setting.objects.first().next_issue}.
-
-Votre facture est disponible à l'adresse {request.scheme + "://" + get_current_site(request).domain}/facture/{order.date}
-"""
-            recipients = [request.user.email]
-            recipients.append(request.user.email)
-            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, recipients)
-        else:
-            pass
-        context["customer_profile"] = customer_profile
-        return render(request, 'magazine/subscription.html', context)
-
-    else:
-        # Not a POST, redirect to homepage.
-        return redirect('index')
-
-from django.contrib.staticfiles.templatetags.staticfiles import static
-from django.contrib.staticfiles.storage import staticfiles_storage
-
-class CreateCheckoutSessionView(View):
     def post(self, request, *args, **kwargs):
-        subscription_id = self.kwargs["pk"]
-        subscription = Subscription.objects.get(id=subscription_id)
+        subscription = get_object_or_404(Subscription, pk=self.kwargs["pk"])
+
+        customer_profile = get_customer_profile(request.user)
+        if not customer_profile:
+            return JsonResponse(
+                {'error': "Aucun profil client n'est associé à ce compte."}, status=400
+            )
 
         checkout_session = stripe.checkout.Session.create(
             customer_email=request.user.email,
-            payment_method_types=['card'],
             line_items=[
                 {
                     'price_data': {
-                        'currency': subscription.currency,
-                        'unit_amount': int(subscription.price * 100),
+                        # Stripe attend un code ISO en minuscules.
+                        'currency': subscription.currency.lower(),
+                        'unit_amount': int(round(subscription.price * 100)),
                         'product_data': {
-                            'name': f"FACES Magazine, Abonnement\n{subscription.name}",
-                            'images': ['https://www.facesmagazine.ch/media/issues/FACES_78_couv.jpg'],
+                            'name': f"FACES Magazine — abonnement {subscription.name}",
                         },
                     },
                     'quantity': 1,
@@ -225,76 +133,104 @@ class CreateCheckoutSessionView(View):
             ],
             metadata={
                 "user_id": request.user.id,
-                "subscription_id": subscription_id,
+                "subscription_id": subscription.id,
             },
             mode='payment',
             success_url=f"{settings.DOMAIN}accounts/profile/",
             cancel_url=f"{settings.DOMAIN}shop/",
         )
 
-        return JsonResponse({
-            'id': checkout_session.id
-        })
+        return JsonResponse({'url': checkout_session.url})
+
+
+def _issues_covered_by(first_issue):
+    """Libellé des quatre numéros couverts par un abonnement."""
+    return "N° " + "-".join(str(first_issue + offset) for offset in range(4))
+
+
+def fulfill_checkout_session(session):
+    """Enregistre l'abonnement correspondant à une session Checkout payée.
+
+    Appelée depuis le webhook, donc potentiellement plusieurs fois pour le
+    même paiement : Stripe rejoue ses événements en cas de timeout.
+    """
+    session_id = session.get("id")
+
+    if Order.objects.filter(stripe_session_id=session_id).exists():
+        logger.info("Session Stripe %s déjà traitée, rien à faire.", session_id)
+        return
+
+    metadata = session.get("metadata") or {}
+    try:
+        user = User.objects.get(id=metadata["user_id"])
+        subscription = Subscription.objects.get(id=metadata["subscription_id"])
+    except (KeyError, ValueError, User.DoesNotExist, Subscription.DoesNotExist):
+        logger.error(
+            "Session Stripe %s inexploitable, métadonnées : %r", session_id, metadata
+        )
+        return
+
+    customer_profile = get_customer_profile(user)
+    if not customer_profile:
+        logger.error(
+            "Session Stripe %s : aucun profil client pour l'utilisateur %s.",
+            session_id, user.pk,
+        )
+        return
+
+    first_issue = Setting.objects.first().next_issue
+
+    customer_profile.subscriber = True
+    customer_profile.approval = True
+    customer_profile.subscription = subscription
+    customer_profile.first_issue = first_issue
+    customer_profile.subscription_date = datetime.date.today()
+    customer_profile.save()
+
+    order = Order.objects.create(
+        customer=customer_profile,
+        item='SUBSC',
+        subscription=subscription,
+        date=datetime.date.today(),
+        amount=subscription.price,
+        currency=subscription.currency,
+        order_info=_issues_covered_by(first_issue),
+        stripe_session_id=session_id,
+    )
+
+    subject = "Votre abonnement à Faces Magazine"
+    message = f"""
+Vous êtes à présent abonné à la revue Faces, vous recevrez les 4 prochains numéros.
+Prochain numéro : {first_issue}.
+
+Votre facture est disponible à l'adresse {settings.DOMAIN}facture/{order.date}/
+"""
+    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
 
 
 @csrf_exempt
+@require_POST
 def stripe_webhook(request, *args, **kwargs):
-    payload = request.body
-    sig_header = request.META['HTTP_STRIPE_SIGNATURE']
-    event = None
-
-    STRIPE_WEBHOOK_SECRET = settings.STRIPE_WEBHOOK_SECRET
+    signature = request.headers.get('Stripe-Signature')
+    if not signature:
+        return HttpResponse(status=400)
 
     try:
         event = stripe.Webhook.construct_event(
-            payload, sig_header, STRIPE_WEBHOOK_SECRET
+            request.body, signature, settings.STRIPE_WEBHOOK_SECRET
         )
-    except ValueError as e:
-        # Invalid payload
+    except ValueError:
+        # Charge utile illisible
         return HttpResponse(status=400)
-    except stripe.error.SignatureVerificationError as e:
-        # Invalid signature
+    except stripe.SignatureVerificationError:
+        # Signature absente ou falsifiée : la requête ne vient pas de Stripe
         return HttpResponse(status=400)
 
-    # Handle the checkout.session.completed event
     if event['type'] == 'checkout.session.completed':
-        session = event['data']['object']
-        customer_email = session["customer_details"]["email"]
-        user_id = session["metadata"]["user_id"]
-        request_user = User.objects.get(id=user_id)
-        subscription_id = session["metadata"]["subscription_id"]
-        customer_profile = get_customer_profile(request_user)
-        subscription =  Subscription.objects.get(id=subscription_id)
+        fulfill_checkout_session(event['data']['object'])
 
-        customer_profile.subscriber = True
-        customer_profile.approval = True
-        customer_profile.subscription = subscription
-        customer_profile.first_issue = Setting.objects.first().next_issue
-        customer_profile.subscription_date = datetime.date.today()
-        customer_profile.save()
-
-        order = Order()
-        order.customer = customer_profile
-        order.item = 'SUBSC'
-        order.subscription = subscription
-        order.date = datetime.date.today()
-        order.amount = subscription.price
-        order.currency = subscription.currency
-        order.order_info = f"N° {Setting.objects.first().next_issue}-{Setting.objects.first().next_issue + 1}-{Setting.objects.first().next_issue + 2}-{Setting.objects.first().next_issue + 3}"
-        order.save()
-
-        subject = "Votre abonnement à Faces Magazine"
-        message = f"""
-Vous êtes à présent abonné à la revue Faces, vous recevrez les 4 prochains numéros.
-Prochain numéro : {Setting.objects.first().next_issue}.
-
-Votre facture est disponible à l'adresse {request.scheme + "://" + get_current_site(request).domain}/facture/{order.date}
-"""
-        recipients = [request_user.email]
-        recipients.append(request_user.email)
-        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, recipients)
-
-    # Passed signature verification
+    # Toute erreur de traitement est journalisée sans renvoyer d'échec :
+    # un rejeu par Stripe ne la corrigerait pas.
     return HttpResponse(status=200)
 
 
@@ -314,8 +250,6 @@ def invoice(request, date):
 def invoices(request):
     context = {}
     context["invoices"] = Order.objects.all()
-    date = Order.objects.first().date
-    print(f"date: {date}")
     return render(request, 'magazine/invoices-all.html', context)
 
 
@@ -397,11 +331,12 @@ via le formulaire du site de FACES Magazine
 --
             
 {context["form"].cleaned_data['message']}""" 
-            recipients = ['info@facesmagazine.ch', 'contact@elizaculea.com', 'g.ladowitch@lautretribu.com']
+            recipients = list(settings.CONTACT_RECIPIENTS)
             if copy:
                 recipients.append(email)
-            for mail in recipients:
-                send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [mail])
+            # Un envoi par destinataire : personne ne découvre les adresses des autres.
+            for recipient in recipients:
+                send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [recipient])
             return render(request, 'magazine/thanks.html')
         # Form not not valid
         else:

@@ -1,13 +1,11 @@
 {% extends "base.html" %}
-{% load staticfiles %}
+{% load static %}
 {% load magazine_extras %}
 
 {% block title %}Abonnement à FACES{% endblock %}
 
-{% block extra-js-head %}
-<script src="https://polyfill.io/v3/polyfill.min.js?version=3.52.1&features=fetch"></script>
-<script src="https://js.stripe.com/v3/"></script>
-{% endblock %}
+{# Cette page ne charge plus aucun script tiers : le paiement se fait par
+   simple redirection vers l'URL renvoyée par Stripe. #}
 
 {% block content %}
 <section id="shop" class="section-a">
@@ -80,7 +78,6 @@ text-decoration: none;" class="pay-button" href="{% url 'create-checkout-session
 {% block extra-js %}
 <script type="text/javascript">
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-    const stripe = Stripe("{{ key }}");
     const payButtons = Array.from(document.querySelectorAll('.pay-button'));
     const cgvCheck = document.getElementById('legal');
     const cgvAlerts = Array.from(document.querySelectorAll('.cgv-alert'));
@@ -98,29 +95,32 @@ text-decoration: none;" class="pay-button" href="{% url 'create-checkout-session
 
             if (cgvCheck.checked) {
 
-                fetch(`${event.target.href}`, {
+                payButton.style.pointerEvents = "none";
+
+                fetch(event.target.href, {
                     method: "POST",
                     headers: {
                         'X-CSRFToken': csrfToken
                     }
                 })
-                
+
                 .then(function (response) {
-                return response.json();
+                    if (!response.ok) {
+                        throw new Error(`réponse ${response.status}`);
+                    }
+                    return response.json();
                 })
 
                 .then(function (session) {
-                    return stripe.redirectToCheckout({ sessionId: session.id });
-                })
-
-                .then(function (result) {
-
-                if (result.error) {
-                    console.log(result.error.message);
-                }
+                    // Stripe héberge la page de paiement : on y envoie le client.
+                    window.location.assign(session.url);
                 })
 
                 .catch(function (error) {
+                    console.error(error);
+                    payButton.style.pointerEvents = "";
+                    alert("Le paiement n'a pas pu être ouvert. Merci de réessayer " +
+                          "ou de nous contacter si le problème persiste.");
                 });
             } else {
                 event.target.nextElementSibling.style.opacity = "1";
